@@ -6,10 +6,6 @@ export let routes = _routes;
 export let shopify = _shopify;
 export let dictionaries = _dictionaries;
 
-let _flash = require('./flash');
-
-export let flash = _flash;
-
 export function renderError(req, res, message) {
     res.render('errorPage', { req: req, message: message ? message : 'Unknown error'});
 }

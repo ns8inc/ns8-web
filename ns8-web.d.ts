@@ -64,7 +64,6 @@ declare module 'ns8-web' {
         pods: Array<string>;
     }
 
-    export function flash(options);
     export function renderError(req, res, message);
 
     export class MenuLink {
