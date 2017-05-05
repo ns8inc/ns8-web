@@ -36,6 +36,7 @@
     "@types/lru-cache": "^2.5.32",
     "lru-cache": "^4.0.2",
     "ns8-api": "ns8inc/ns8-api#1.x",
+    "ns8-data-services": "^1.4.0",
     "ns8-utils": "ns8inc/ns8-utils#1.x",
     "@types/restify": "^2.0.42",
     "restify": "^4.3.0",

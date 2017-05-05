@@ -4,7 +4,7 @@ import restify = require('restify');
 import api = require('ns8-api');
 import {IApplication} from "ns8-web";
 
-let gator = require('gator-score');
+let gator = require('ns8-data-services');
 
 /*
  Set up routes - this script handles functions required for managing segments
