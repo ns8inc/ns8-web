@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+<body class="fixed-navigation">
+    <div id="wrapper">
+
+        <% include ../partials/master/leftPanel %>
+
+        <div id="page-wrapper" class="gray-bg sidebar-content">
+
+            <% include ../partials/master/topPanel %>
+
+            <div class="wrapper wrapper-content">
+                <% include ../partials/master/message %>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1>Reset Password</h1>
+                        <div class="account-wall">
+
+                            <form class="form-signin" action="/reset/<%= usertoken%>" method="post">
+                                <label for="password">New Password</label>
+                                <input type="password" name="password" class="form-contol" placeholder="New Password" required="required" autofocus="autofocus">
+
+                                <label for="confirm">Confirm Password</label>
+                                <input type="password" name="confirm" class="form-contol" placeholder="Confirm Password" required="required" autofocus="autofocus">
+
+                                <button class="btn btn-lg btn-primary btn-block" type="submit" >Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

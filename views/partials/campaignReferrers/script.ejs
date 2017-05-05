@@ -1,0 +1,92 @@
+<script>
+
+    var assignmentData = <%- JSON.stringify(campaignReferrers) %>;
+
+    function setFormData() {
+        var table = '<table class="table table-hover"><thead><tr><th>Referrer</th><th>Campaign</th><th>Action</th></tr></thead><tbody>';
+
+        for (var row = 0; row < assignmentData.length; row++) {
+            table += '<tr><td>' + assignmentData[row].referrer + '</td><td>' + assignmentData[row].campaign + '</td>' +
+                '<td><button onclick="deleteRow(' + row + '); return false" type="button" class="btn btn-delete btn-xs">Delete</button></td></tr>';
+        }
+
+        $('#dataTable').html(table + '</tbody></table>');
+        $('#form-modal').trigger('reset');
+    }
+
+    function deleteRow(row) {
+
+        Page.confirm('Are you sure?', 'Permanently delete assignment?', function() {
+            assignmentData.splice(row, 1);
+            putData();
+        });
+    }
+
+    function validateForm() {
+        var val = $('#referrer').val();
+
+        if (!val) {
+            $('#form-referrer').addClass('has-error');
+            return false;
+        }
+
+        if (val.indexOf('\'') > -1 || val.indexOf('"') > -1 || val.indexOf('&') > -1 || val.indexOf('<') > -1 || val.indexOf('>') > -1) {
+            $('#form-referrer').addClass('has-error');
+            Page.alert('Referrers cannot contain \' " & < >.');
+            return false;
+        }
+
+        val = $('#campaign').val();
+
+        if (!val) {
+            $('#form-campaign').addClass('has-error');
+            return false;
+        }
+
+        if (val.indexOf('\'') > -1 || val.indexOf('"') > -1 || val.indexOf('&') > -1 || val.indexOf('<') > -1 || val.indexOf('>') > -1) {
+            $('#form-campaign').addClass('has-error');
+            Page.alert('Campaigns cannot contain \' " & < >.');
+            return false;
+        }
+
+        return true;
+    }
+
+    function submitForm() {
+
+        if (!validateForm()) {
+            return;
+        }
+
+        assignmentData.push({referrer: $('#referrer').val(), campaign: $('#campaign').val()});
+        putData();
+    }
+
+    function putData() {
+
+        $.ajax({
+            type: "PUT",
+            data: { campaignReferrers: assignmentData },
+            success: function (data, status) {
+                setFormData();
+                $('#modal-create').modal('hide');
+            },
+            error: function (request, status, error) {
+                $('#modal-create').modal('hide');
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        setFormData();
+
+        $('#referrer').focus(function() {
+            $('#form-referrer').removeClass('has-error');
+        });
+
+        $('#campaign').focus(function() {
+            $('#form-campaign').removeClass('has-error');
+        });
+    });
+</script>

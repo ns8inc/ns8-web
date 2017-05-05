@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+    <% include partials/dashboard/style %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="gray-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <h2><%- title || dashboardName %></h2>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <% include partials/master/message %>
+                <div class="col-lg-12">
+                    <ul id="pods"></ul>
+                </div>
+            </div>
+        </div>
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+<% include partials/dashboard/script %>
+
+</body>
+</html>

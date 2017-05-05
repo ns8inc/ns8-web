@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+    <link href="/codemirror/codemirror.css" rel="stylesheet">
+    <link href="/codemirror/theme/blackboard.css" rel="stylesheet">
+
+    <style>
+        .CodeMirror {
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+                    <h1>Realtime User Scoring/Profiling</h1>
+                    <h2>HTTPS Example</h2>
+                    <br>The API can be called directly from a browser.  Cut and paste the following code into a browser to test.  The call must be made over HTTPS, or else the call will return an error.  Here is an example HTTPS call:
+
+                    <br><br><textarea id="code">
+https://api.gator.io/v1/score?ip=72.211.250.156&ua=Mozilla%2F5.0%20(Windows%20NT%206.1%3B%20WOW64)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F42.0.2311.135%20Safari%2F537.36&url=http%3A%2F%2Fmysite.com%2Fsearch%3Futm_campaign%3DBingAds&referrer=http%3A%2F%2Fbing.com%2Fsearch%3Fq%3Dbicycles</textarea>
+
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<script src="/codemirror/codemirror.js"></script>
+<script src="/codemirror/mode/shell/shell.js"></script>
+<% include ../partials/master/footerScripts %>
+
+<script>
+
+    $(document).ready(function() {
+
+        CodeMirror.fromTextArea(document.getElementById("code"), {
+            mode:  "shell",
+            theme: "blackboard",
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true
+        });
+    });
+</script>
+</body>
+</html>

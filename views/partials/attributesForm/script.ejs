@@ -1,0 +1,122 @@
+<script src="/typeahead/typeahead.jquery.min.js"></script>
+<script src="/js/moment.min.js"></script>
+
+<script>
+
+    function setFormData() {
+
+        if (dataObj) {
+            $('#title').html('Edit ' + title + ' Attribute for Project: <%- project.name %>');
+            $('#name').val(dataObj.name);
+            $('#name').prop('readonly', true);
+            $('#description').val(dataObj.description);
+            $('#attribTypeElement').prop('checked', dataObj.isElement);
+
+            if (!dataObj.filterable)
+                $('#filterNo').prop('checked',true);
+
+            if (dataObj.isMetric) {
+                $('#attribTypeMetric').prop('checked',true);
+                $('#elementOptions').hide();
+                $('#metricOptions').show();
+            }
+
+            if (dataObj.format)
+                $('#format').val(dataObj.format);
+
+            if (dataObj.totalBy)
+                $('input:radio[name="totalBy"]').filter('[value="' + dataObj.totalBy + '"]').attr('checked', true);
+
+            if (dataObj.basisRelationship)
+                $('input:radio[name="basisRelationship"]').filter('[value="' + dataObj.basisRelationship + '"]').attr('checked', true);
+
+            if (dataObj.dataType) {
+                $('#dataType').val(dataObj.dataType);
+
+                if (dataObj.dataType == 'numeric')
+                    $('#numericOptions').show();
+                else
+                    $('#numericOptions').hide();
+            }
+
+            $('#attributeSubmit').html('Update Attribute');
+
+        } else {
+            $('#title').html('Create New ' + title + ' Attribute for Project: <%- project.name %>');
+        }
+    }
+
+    function getFormData() {
+        var params = {
+            type: '<%- req.query.type %>',
+            name: $('#name').val(),
+            description: $('#description').val(),
+            attribType: $('input:radio[name=attribType]:checked').val(),
+            filterable: $('#filterYes').prop('checked') ? "yes" : "no",
+            dataType: $('#dataType').val(),
+            element: $('input:radio[name=element]:checked').val(),
+            format: $('#format').val(),
+            totalBy: $('input:radio[name=totalBy]:checked').val(),
+            basisRelationship: $('input:radio[name=basisRelationship]:checked').val()
+        };
+
+        return params;
+    }
+
+    function submitForm() {
+
+        if (!$('#name').val()) {
+            Page.showMessage('You must enter a name for the attribute.')
+            return;
+        }
+
+        if ($('#name').val().indexOf('.') > -1 || $('#name').val().indexOf('$') > -1 || $('#name').val().substr(0, 1) == '_') {
+            Page.showMessage('The attribute name cannot contain a "." or "$" character or begin with a "_".')
+            return;
+        }
+
+        //  validation passed, update the data
+        Data.submitForm('/setup/attributes/<%- project.id %>', getFormData(), function() {
+            window.location = '/setup/attributes/<%- project.id %>?type=<%- req.query.type %>';
+        });
+    }
+
+    $(document).ready(function() {
+
+        if ($('#attribTypeMetric').prop('checked')) {
+            $('#dataType').val('numeric');
+            $('#metricOptions').show();
+            $('#elementOptions').hide();
+        } else {
+            $('#metricOptions').hide();
+            $('#elementOptions').show();
+        }
+
+        if ($('#dataType').val() == 'numeric')
+            $('#numericOptions').show();
+        else
+            $('#numericOptions').hide();
+
+        $('[name="attribType"]').on("click", function() {
+
+            if ($('#attribTypeElement').prop('checked')) {
+                $('#elementOptions').show();
+                $('#metricOptions').hide();
+            } else {
+                $('#elementOptions').hide();
+                $('#metricOptions').show();
+            }
+        });
+
+        $('[name="dataType"]').on("change", function() {
+
+            if (this.value == 'numeric')
+                $('#numericOptions').show();
+            else
+                $('#numericOptions').hide();
+        });
+
+        //  set up form based on whether a new item or editing an existing item
+        setFormData();
+    });
+</script>

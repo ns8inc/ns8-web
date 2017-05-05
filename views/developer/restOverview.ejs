@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>REST API</h1>
+                    <%- application.branding.productName %> supports REST calls to populate and retrieve data. REST stands for Representational State Transfer, and can be thought of as
+                    an HTTP-based API.  A REST API is a set of operations that can be invoked using the actual URI as parameters for your operations.
+                    <br /><br />
+                    <b>IMPORTANT</b>:  The REST APIs should be used outside the JavaScript API or in apps that do not have a native API.
+                    <br /><br />
+                    For example there is a method to get available entities and attributes:
+                    <br /><br />
+                    <code>
+                    <%- settings.apiUrl %>/v1/analytics/entities
+                    </code>
+                    <br /><br />
+                    For security purposes, it is required that the HTTPS protocol is used for all REST calls.
+
+                    <br><br><h2>Authentication of REST calls</h2>
+
+                    The REST API requires the use of an access token on most calls, which identifies the project of the call and acts as a password
+                    for the call.
+                    <br /><br />
+                    A project can have multiple access tokens, each one having different access rights.&nbsp; Access tokens can have push access for recording data, and query access
+                    for reading data.  Access tokens can be revoked by the account owner at any time.
+                    <br /><br />
+                    REST API calls are required to use the HTTPS protocol.&nbsp; By using HTTPS, the information passed to the call is encrypted.
+                    <br /><br />
+                    To generate an access token for a project, go to the 'Manage Projects' menu item and click on the 'Access Tokens' button.
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

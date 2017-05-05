@@ -1,0 +1,13 @@
+<h1>Campaign Identifiers</h1>
+<br />
+From this page, you can setup your campaign identifiers.  Campaign identifiers designate what you want the query string parameter name to be for campaign tracking.
+The ids 'source' and 'utm-campaign' are automatically tracked.  For example, if you have an Google AdWords account, you may have the following URL setup:
+<br><br>
+<code>http://www.mysite.com?<strong>mysource</strong>=google</code>
+<br /><br />
+The campaign identifier in this case is <code>mysource</code>.<br /><br />
+Type in your list of campaign identifiers (up to 100):
+<br />
+<input id="campaignIds" data-placeholder="Add campaign ids..." type="text" value="<%- campaignIds %>">
+<br /><br />
+<button onclick="submitForm(); return false" class="btn btn-sm btn-primary m-t-n-xs"><strong>Update campaign identifiers</strong></button>

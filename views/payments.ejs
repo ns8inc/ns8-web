@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+    <title>Payments</title>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row white-bg" style="min-height:900px">
+
+                <% include partials/master/message %>
+
+                <div class="col-lg-12">
+
+                    <%
+
+                        var html = '<h1>Payments</h1>';
+
+                        if (discount)
+                            html += '<strong>You currently have a discount of ' + discount + '%</strong><br>'
+
+                        if (balance && balance < 0)
+                            html += '<strong>You currently have a credit of $' + (-balance).toFixed(2) + ' (USD)</strong><br>'
+
+                        html += '<table class="table table-hover"><br>';
+                        html += '<thead><tr>';
+                        html += '<th>Date</th>';
+                        html += '<th>Last 4 Digits</th>';
+                        html += '<th>Expiration</th>';
+                        html += '<th>Amount</th>';
+                        html += '</tr></thead>';
+
+                        html += '<tbody>';
+
+                        if (payments) {
+
+                            for (var m = 0; m < payments.length; m++) {
+                                var payment = payments[m];
+
+                                html += '<tr>';
+                                html += '<td>' + new Date(payment.created * 1000) + '</td>';
+                                html += '<td>' + payment.source.last4 + '</td>';
+                                html += '<td>' + payment.source.exp_month + ' / ' + payment.source.exp_year + '</td>';
+                                html += '<td>' + payment.amount + ' (USD)</td>';
+                                html += '</tr>';
+                            }
+                        }
+                        html += '</tbody>';
+                        html += '</table>';
+                    %>
+                    <%- html %>
+                </div>
+            </div>
+        </div>
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+</body>
+</html>

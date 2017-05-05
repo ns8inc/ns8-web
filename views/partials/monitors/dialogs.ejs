@@ -1,0 +1,590 @@
+<div class="modal inmodal fade" id="script-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <i class="fa fa-code modal-icon"></i>
+                <h2 class="modal-title">Data Collection Script</h2>
+                Cut and paste this script on every page you wish to analyze. Place the script directly above the &lt;/head&gt; tag.
+                <br><strong>Please Note:</strong> Each monitor has its own unique tracking script.
+            </div>
+            <div class="modal-body">
+                <pre id="scriptText" style="font-size:11px"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="test-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <span class="modal-title" id="modal-title">
+                    Run Test
+                    <div class="form-inline">
+
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-check" style="font-size:16px;color:#bbb"></i></span>
+                            <div id="test-monitor-div"></div>
+                        </div>
+
+                        <div id="testCloud" class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-cloud" style="font-size:18px;color:#bbb"></i></span>
+                            <input class="form-control" value="Cloud Services" style="width:129px" readonly />
+                        </div>
+
+                        <div id="testStations" class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-globe" style="font-size:18px;color:#bbb"></i></span>
+                            <select id="test-station" class="form-control">
+                                <%  for (var key in stations) {
+                                if (stations.hasOwnProperty(key)) {
+                                %>
+                                <option value="<%-key%>"><%- stations[key].description %></option>
+                                <%      }  %>
+                                <%  }  %>
+                            </select>
+                        </div>
+                        <button onsubmit="return false;" onclick="runTest(); return false;" class="btn btn-primary">Run</button>
+                    </div>
+                </span>
+            </div>
+            <div class="modal-body">
+                <div id="test-results"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <form role="form" id="main-form-modal" class="form-horizontal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h2 class="modal-title" id="monitor-modal-title">Create Monitor</h2>
+                </div>
+                <div class="modal-body">
+                    <input name="id" id="id" type="hidden"/>
+
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-name" class="help-icon fa fa-question-circle pull-left"></i>
+                                Monitor Name
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input name="name" id="name" class="form-control" required spellcheck="false" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-type" class="help-icon fa fa-question-circle pull-left"></i>
+                                Type
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+
+                            <select class="form-control" name="type" id="type" onchange="typeSelected()">
+                                <optgroup label="Performance and Availability">
+                                    <% if (typeof application.isLetsMonitor == 'function' && application.isLetsMonitor() && !req.session.account.billingMethod) { %>
+                                        <option value="<%- monitorTypes.certificate %>">Certificate Validity (free)</option>
+                                        <option value="<%- monitorTypes.website %>">Website</option>
+                                    <% } else { %>
+                                        <option value="<%- monitorTypes.website %>">Website</option>
+                                        <option value="<%- monitorTypes.certificate %>">Certificate Validity</option>
+                                    <% } %>
+                                    <option value="<%- monitorTypes.performance %>">Real User Performance</option>
+                                </optgroup>
+                                <optgroup label="Threat and Fraud Protection">
+                                    <option value="<%- monitorTypes.scoring %>">Malicious Bot/User Detection</option>
+                                    <option value="<%- monitorTypes.DNS %>">DNS Expected Values</option>
+                                    <option value="<%- monitorTypes.portScan %>">Open Port Scan</option>
+                                    <option value="<%- monitorTypes.DBL %>">Domain Blocklists</option>
+                                    <option value="<%- monitorTypes.email %>">Email Blocklists</option>
+                                    <option value="<%- monitorTypes.GSB %>">Google Safe Browsing</option>
+                                </optgroup>
+                                <optgroup label="Connectivity Tests">
+                                    <option value="<%- monitorTypes.ping %>">Ping</option>
+                                    <option value="<%- monitorTypes.port %>">TCP Port</option>
+                                </optgroup>
+                            </select>
+                            <span id="type-description" style="font-size:13px">&nbsp;</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <span id="endpointLabel">Address</span>
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input name="url" id="url" class="form-control" spellcheck="false" required />
+                        </div>
+                    </div>
+
+                    <div id="contactsDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-contacts" class="help-icon fa fa-question-circle pull-left"></i>
+                                Contacts
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="text" name="contacts" id="contacts" class="form-control" autocomplete="off" spellcheck="false" />
+                        </div>
+                    </div>
+
+                    <div id="daysLeftDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-days-left" class="help-icon fa fa-question-circle pull-left"></i>
+                                Alert days prior
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="number" name="daysLeft" id="daysLeft" class="form-control" value="7" />
+                        </div>
+                    </div>
+
+                    <div id="recordDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-record" class="help-icon fa fa-question-circle pull-left"></i>
+                                Record Type
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <select class="form-control" id="recordType" name="recordType">
+                                <option value="A">A</option>
+                                <option value="AAAA">AAAA</option>
+                                <option value="MX">MX</option>
+                                <option value="TXT">TXT</option>
+                                <option value="SRV">SRV - use host:port format</option>
+                                <option value="PTR">PTR - enter I.P. address for reverse lookup</option>
+                                <option value="NS">NS</option>
+                                <option value="CNAME">CNAME</option>
+                                <option value="SOA">SOA - use authority-domain:hostmaster format</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="intervalDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-interval" class="help-icon fa fa-question-circle pull-left"></i>
+                                Monitor Every
+                            </div>
+                        </label>
+                        <div id="shortIntervals" class="col-lg-8">
+                            <select class="form-control" id="interval" name="interval">
+                                <option value="1">1 minute</option>
+                                <option value="2">2 minutes</option>
+                                <option value="3">3 minutes</option>
+                                <option value="4">4 minutes</option>
+                                <option value="5" selected>5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">60 minutes</option>
+                                <option value="1440">24 hours</option>
+                            </select>
+                        </div>
+
+                        <div id="longIntervals" class="col-lg-8">
+                            <select class="form-control" id="longInterval" name="longInterval">
+                                <option value="1440">24 hours</option>
+                                <option value="10080">Once a week</option>
+                                <option value="43200">Every 30 days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="matchPhraseDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-match" class="help-icon fa fa-question-circle pull-left"></i>
+                                Match Phrase
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="text" name="matchPhrase" id="matchPhrase" placeholder="(optional)" class="form-control" autocomplete="off" spellcheck="false" />
+                        </div>
+                    </div>
+
+                    <div id="portDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-port" class="help-icon fa fa-question-circle pull-left"></i>
+                                Port
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="number" name="port" id="port" class="form-control" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div id="scoreDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-score" class="help-icon fa fa-question-circle pull-left"></i>
+                                Minimum Score
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="number" name="score" id="score" class="form-control" autocomplete="off" value="150" />
+                        </div>
+                    </div>
+
+                    <div id="timingDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-timing" class="help-icon fa fa-question-circle pull-left"></i>
+                                Alert Threshold
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="number" name="timingMinimum" id="timingMinimum" class="form-control" autocomplete="off" value="15000" />
+                        </div>
+                    </div>
+
+                    <div id="portsDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-ports" class="help-icon fa fa-question-circle pull-left"></i>
+                                Allowed Ports
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="text" name="ports" id="ports" class="form-control" autocomplete="off" value="80" />
+                        </div>
+                    </div>
+
+                    <div id="scriptOptionsDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-script" class="help-icon fa fa-question-circle pull-left"></i>
+                                Data Script
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <span style="font-size:13px">Paste this script above the &lt;/head&gt; tag on your pages:</span>
+                            <pre id="scriptOptionsText" style="font-size:11px"></pre>
+                        </div>
+                    </div>
+
+                    <div id="stationsDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-stations" class="help-icon fa fa-question-circle pull-left"></i>
+                                Stations
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <div id="stationsDiv">
+                                <input onclick="toggleStations()" type="radio" checked value="all" id="stations-all" name="stationsOptions"> Test from all enabled stations
+                                <br><input onclick="toggleStations()" type="radio" value="select" id="stations-select" name="stationsOptions"> Select stations to test from
+                                <div id="stationsInputDiv">
+                                    <input type="text" name="stations" id="stations" class="form-control" autocomplete="off" spellcheck="false" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="expectedValuesDiv" class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                <i id="help-expected" class="help-icon fa fa-question-circle pull-left"></i>
+                                Expected Value(s)
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input type="text" name="expectedValues" id="expectedValues" class="form-control" autocomplete="off" spellcheck="false" />
+                            <button onclick="getDNSValues(); return false" type="button" class="btn btn-primary btn-xs">
+                                <i class="fa fa-search"></i>&nbsp; Get Existing Values
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="advancedOptionsDiv" class="panel panel-default">
+                        <div class="panel-heading" onclick="$('#advancedOptions').slideToggle('slow'); return false;">
+                            <h4 class="panel-title">
+                                <a href="#" >
+                                    Advanced Options&nbsp; <i id="optionsChevron" class="fa fa-chevron-down"></i>
+                                </a>
+                            </h4>
+                        </div>
+
+                        <div id="advancedOptions" class="panel-collapse collapse in" style="display:none;">
+
+                            <div id="advancedOptionsPanel" class="panel-body">
+
+                                <div id="timeoutDiv" class="form-group">
+                                    <label class="col-lg-4 control-label">
+                                        <div class="text-left">
+                                            <i id="help-timeout" class="help-icon fa fa-question-circle pull-left"></i>
+                                            Timeout
+                                        </div>
+                                    </label>
+                                    <div class="col-lg-8">
+                                        <input step="any" min=".01" max="119" type="number" name="timeout" id="timeout" placeholder="(optional)" class="form-control" required autocomplete="off" value="60">
+                                    </div>
+                                </div>
+
+                                <div id="userNameDiv" class="form-group">
+                                    <label class="col-lg-4 control-label">
+                                        <div class="text-left">
+                                            <i id="help-username" class="help-icon fa fa-question-circle pull-left"></i>
+                                            User Name
+                                        </div>
+                                    </label>
+                                    <div class="col-lg-8">
+                                        <input type="text" name="userName" id="userName" placeholder="(optional)" class="form-control" autocomplete="off" spellcheck="false" />
+                                    </div>
+                                </div>
+
+                                <div id="passwordDiv" class="form-group">
+                                    <label class="col-lg-4 control-label">
+                                        <div class="text-left">
+                                            <i id="help-password" class="help-icon fa fa-question-circle pull-left"></i>
+                                            Password
+                                        </div>
+                                    </label>
+                                    <div class="col-lg-8">
+                                        <input type="text" name="password" id="password" placeholder="(optional)" class="form-control" autocomplete="off" spellcheck="false" />
+                                    </div>
+                                </div>
+
+                                <div id="agentDiv" class="form-group">
+                                    <label class="col-lg-4 control-label">
+                                        <div class="text-left">
+                                            <i id="help-agent" class="help-icon fa fa-question-circle pull-left"></i>
+                                            User Agent
+                                        </div>
+                                    </label>
+                                    <div class="col-lg-8">
+                                        <input type="text" name="userAgent" id="userAgent" placeholder="(optional)" class="form-control" autocomplete="off" spellcheck="false" />
+                                    </div>
+                                </div>
+
+                                <div id="certOptions" class="form-group">
+                                    <label class="col-lg-4 control-label">
+                                        <div class="text-left">
+                                            <i id="help-skip" class="help-icon fa fa-question-circle pull-left"></i>
+                                            Skip authorization
+                                        </div>
+                                    </label>
+
+                                    <div class="col-lg-8">
+                                        <input type="checkbox" name="allowAuthorizationErrors" id="allowAuthorizationErrors">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button onclick="submitForm(); return false" class="btn btn-primary btn-ok">OK</button>
+                    <input id="monitor-create-ok" type="submit" class="hidden">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="result-modal-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title" id="result-modal-title">Result Details</h2>
+            </div>
+            <div class="modal-body">
+                <div id="result-modal-details"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-website-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Website Monitor</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/website %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-certificate-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Certificate Validity</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/certificate %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-scoring-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Malicious Bot/User Detection</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/scoring %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-dns-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">DNS Expected Values</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/dns %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-gsb-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Google Safe Browsing</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/gsb %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-dbl-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Domain Block List</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/dbl %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-rup-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Real User Performance</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/rup %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-email-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Email Blocklisting</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/email %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-tcp-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">TCP Port</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/tcp %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="monitor-port-scan-dialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h2 class="modal-title">Open Port Scan</h2>
+            </div>
+            <div class="modal-body">
+                <% include ../help/portScan %>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

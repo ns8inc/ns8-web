@@ -1,0 +1,102 @@
+<%
+    //  if a project type is specified from controller, it restricts the list of projects to that type
+    var projectType = projectType || null;  // this handles when projectType is not passed in
+%>
+
+<div id="preloader"></div>
+<div class="row border-bottom hidden-print">
+    <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0; z-index: 2011">
+
+        <div class="navbar-header">
+
+            <form role="form" class="form-inline">
+                <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " style="margin-top:11px;" href="#">
+                    <i class="fa fa-bars"></i>
+                </a>
+
+                <span class="projects<%- application.hideProjects ? ' hidden' : '' %>">
+                    <%
+                        var currentProjectId = req.session.currentProjectId;
+                    %>
+
+                    <%
+                        if (req.session.user) {
+                    %>
+
+                    <div class="form-group"><label for="projects" class="sr-only">Projects</label>
+                        <select name="projects" id="projects" class="form-control projects" style="margin-top:10px; height:32px; font-size: 13px;" onchange="selectProject()">
+
+                            <%  if (!req.session.projects || (req.session.projects && req.session.projects.length == 0)) {  %>
+                                <option value="">Projects...</option>
+                            <%  }  %>
+
+                            <%  if (req.session.projects) {
+                                    for (var p = 0; p < req.session.projects.length; p++) {
+
+                                        if (!projectType || req.session.projects[p].type == projectType) {
+                            %>
+                                            <%- '<option value="' + req.session.projects[p].id + '"' + (req.session.projects[p].id == currentProjectId ? ' selected' : '') + '>' +
+                                                req.session.projects[p].name + '</option>'  %>
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
+
+                            <%  if (!req.session.user.isDemo) { %>
+                                <option value="__add">Create new project...</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <%
+                        }
+                    %>
+                </span>
+            </form>
+        </div>
+        <ul class="nav navbar-top-links navbar-right">
+            <li>
+                <% if (req.session) { %>
+                    <div class="dropdown" style="margin-top:8px">
+
+                        <a href="#" data-toggle="dropdown"><span style="color:#ccc; font-size:24px"><span class="fa fa-user"></span> <span class="caret" style="color:#777"></span></span></a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-header">Logged in as: <b><%- req.session.user.name %></b></li>
+                            <li class="divider"></li>
+                            <li><a href="/logout">Log out</a></li>
+                            <li><a href="/support">Support</a></li>
+                        </ul>
+                    </div>
+                <% } else {%>
+                    <a href="/login">
+                        <i class="fa fa-sign-in"></i> Log in
+                    </a>
+                <% } %>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<%- typeof application.promoHtml === "function" ? application.promoHtml(req) : '' %>
+
+<script>
+
+//  a page can set this to a function that will be called upon the project being changed
+var projectChanged;
+
+    function apiHost() {
+        return  '<%- settings.apiUrl %>/v1/analytics/';
+    }
+
+    function selectProject() {
+        if ($('#projects').val() == '__add') {
+            window.location = '/setup/projects/form';
+        } else if ($('#projects').val()) {
+
+            //  set default project
+            $.get('/defaultproject/' + $('#projects').val(), function(data) {
+                location.reload();
+            });
+        }
+    }
+</script>

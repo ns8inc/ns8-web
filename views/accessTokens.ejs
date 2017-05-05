@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <div class="row white-bg">
+
+                <% include partials/master/message %>
+
+                <div class="col-lg-12">
+                    <h1>API Access Tokens<%- (projectId ? ' for Project ' + projectName : '') %></h1>
+                    <br />
+                    Access tokens are required for native API and REST API calls.  Create / revoke API access tokens here.
+                    <br /><br />
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create"><strong>Create new access token</strong></button>
+                    <br /><br />
+                    <div id="dataTable"></div>
+                    <br /><br /><br /><br />
+                </div>
+            </div>
+        </div>
+
+        <div class="modal inmodal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h2 class="modal-title">Create API Access Token</h2>
+                        <small class="font-bold">
+                            Generate an access token for use in app and native APIs.  Select whether the token can be used for pushing data and/or querying data.
+                        </small>
+                    </div>
+                    <div class="modal-body">
+                        <form role="form" id="form-modal">
+                            <div class="form-group">
+                                <label>Grant Access to Project</label>
+
+                                    <%
+                                        if (!projectId) {
+                                            projectId = req.session.currentProjectId;
+                                        }
+                                    %>
+                                    <select name="project" id="project" class="form-control">
+                                    <%  if (req.session.projects) {
+                                    for (var p = 0; p < req.session.projects.length; p++) {
+                                    %>
+                                    <%- '<option value="' + req.session.projects[p].id + '"' + (req.session.projects[p].id == projectId ? ' selected' : '') + '>' +
+                                    req.session.projects[p].name + '</option>'  %>
+                                    <%
+                                    }
+                                    }
+                                    %>
+                                </select>
+                            </div>
+                            <div class="form-group" id="form-expires">
+                                <label>Expiration Date</label>
+                                <input name="expires" id="expires" placeholder="Expiration date - leave blank for never..." class="form-control" autocomplete="off">
+                            </div>
+                            <input type="checkbox" name="pushAccess" id="pushAccess" checked />&nbsp; <label>Allow Push Access</label> - This is needed if the app is tracking user activity.
+                            <br><input type="checkbox" name="queryAccess" id="queryAccess" checked />&nbsp; <label>Allow Query Access</label> - This allows the app to query data from the project.
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <a onclick="submitForm(); return false" id="modal-create-ok" class="btn btn-primary btn-ok">OK</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+<script>
+
+    var tokens = <%- JSON.stringify(accessTokens) %>, projectId = <%- projectId %>;
+
+    function setFormData() {
+        var table = '<table class="table table-hover"><thead><tr><th>Token</th><th>Created</th><th>Expires</th><th>Project</th><th>Project Id</th><th>Permissions</th><th>Action</th></tr></thead><tbody>';
+
+        for (var row = 0; row < tokens.length; row++) {
+            table += '<tr><td>' + tokens[row].id + '</td><td>' + tokens[row].createdDate + '</td><td>' + tokens[row].expiration + '</td>' +
+                    '<td>' + ($('#project > option[value="' + tokens[row].projectId + '"]').html() || 'N/A') + '</td>' +
+                    '<td>' + (tokens[row].projectId || 'N/A') + '</td>' +
+                    '<td>' + (tokens[row].permissions || '[ none ]') + '</td>' +
+                    '<td><button onclick="deleteRow(\'' + tokens[row].id + '\'); return false" type="button" class="btn btn-delete btn-xs">Revoke</button></td></tr>';
+        }
+
+        $('#dataTable').html(table + '</tbody></table>');
+        $('#form-modal').trigger('reset');
+    }
+
+    function deleteRow(id) {
+
+        Page.confirm('Are you sure?', 'Permanently revoke ' + id + '?', function() {
+
+            $.ajax({
+                type: "DELETE",
+                url: '/accesstokens/',
+                data: { accessToken: id },
+                success: function (data, status) {
+                    location.reload();
+                },
+                error: function (request, status, error) {
+                    $('#modal-create').modal('hide');
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+
+    function validateForm() {
+
+        if (!$('#pushAccess').is(':checked') && !$('#queryAccess').is(':checked')) {
+            Page.alert('At least one access must be selected.');
+            return false;
+        }
+
+        if (!$('#expires').val()) {
+            return true;
+        }
+
+        if (!Date.parse($('#expires').val())) {
+            Page.alert('Invalid date format');
+            return false;
+        }
+
+        return true;
+    }
+
+    function submitForm() {
+
+        if (!validateForm()) {
+            return;
+        }
+
+        var data = {
+            expires: $('#expires').val(),
+            pushAccess: $('#pushAccess').is(':checked'),
+            queryAccess: $('#queryAccess').is(':checked'),
+            projectId: +$('#project').val()
+        };
+
+        $.ajax({
+            type: "POST",
+            url: '/accesstokens/',
+            data: data,
+            success: function (data, status) {
+                location.reload();
+            },
+            error: function (request, status, error) {
+                $('#modal-create').modal('hide');
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        setFormData();
+
+        $('#expires').datepicker();
+    });
+</script>
+</body>
+</html>

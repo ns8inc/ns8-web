@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/home/header %>
+    <title>Change Password</title>
+</head>
+
+<body class="landing-page subpage">
+<% include ../partials/home/navbarSub %>
+
+<div class="loginColumns animated fadeInDown">
+    <% include ../partials/master/message %>
+    <div class="row">
+
+        <div class="col-md-12">
+            <h2 class="subpage-title">Change Password</h2>
+
+            <div class="ibox-content">
+
+                <form class="m-t" role="form" id="signup" method="post">
+                    <input type="hidden" name="token" value="<%- req.query.token %>" />
+
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="New Password" name="password" id="password" required="" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Confirm Password" name="passwordConfirm" id="passwordConfirm" required="" />
+                    </div>
+
+                    <button id="submitButton" type="submit" class="btn btn-primary block full-width m-b">Change Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<% include ../partials/home/footerScripts %>
+
+<script>
+
+    <% if (!dev) { %>
+        if (location.protocol == 'http:') {
+            window.location = '<%- application.branding.loginUrl %>';
+        }
+    <% } %>
+
+    $("#signup").submit(function(event) {
+        event.preventDefault();
+
+        if ($('#password').val() != $('#passwordConfirm').val()) {
+            Page.showMessage('Passwords do not match.');
+            return false;
+        }
+
+        $("#submitButton").prop('disabled', true);
+        $("body").css("cursor", "progress");
+
+        $.post('/reset/change', $(this).serialize(), function(result) {
+            window.location = '/login';
+        }).fail(function(jqXHR, textStatus, error) {
+            $("body").css("cursor", "default");
+            $("#submitButton").prop('disabled', false);
+            Data.showError(jqXHR, textStatus, error, false);
+        });
+    });
+</script>
+</body>
+</html>

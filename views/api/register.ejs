@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/home/header %>
+    <title>Signup</title>
+</head>
+
+<body class="landing-page subpage">
+<% include ../partials/home/navbarSub %>
+
+<div class="loginColumns animated fadeInDown">
+    <% include ../partials/master/message %>
+    <div class="row">
+
+        <div class="col-md-12">
+            <h2 class="subpage-title">Signup for <%- application.branding.productName %></h2>
+
+            <div class="ibox-content">
+
+                <form class="m-t" role="form" id="signup" action="<%- application.branding.signupUrl %>" method="post">
+
+                    <div class="form-group">
+                        <input type="email" class="form-control" placeholder="Email" name="username" autocapitalize="off" autocorrect="off" required="" autofocus />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Password" name="password" id="password" autocapitalize="off" autocorrect="off" required="" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Confirm Password" name="passwordConfirm" id="passwordConfirm" autocapitalize="off" autocorrect="off" required="" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="First Name" name="firstName" required="" />
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Last Name" name="lastName" required="" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Timezone<span></span></label>
+                        <select name="timezoneId" class="form-control">
+                            <option value="MIT">Midway Islands Time (MIT)</option>
+                            <option value="HST">Hawaii Standard Time (HST)</option>
+                            <option value="AST">Alaska Standard Time (AST)</option>
+                            <option value="PST" selected="">Pacific Standard Time (PST)</option>
+                            <option value="PXT">Mexico/Pacific Standard Time (PXT)</option>
+                            <option value="PNT">Phoenix Standard Time (PNT)</option>
+                            <option value="MST">Mountain Standard Time (MST)</option>
+                            <option value="MXT">Mexico/Mountain Standard Time (MXT)</option>
+                            <option value="CST">Central Standard Time (CST)</option>
+                            <option value="CXT">Mexico/Central Standard Time (CXT)</option>
+                            <option value="EST">Eastern Standard Time (EST)</option>
+                            <option value="IET">Indiana Eastern Standard Time (IET)</option>
+                            <option value="PRT">Puerto Rico/US Virgin Islands Time (PRT)</option>
+                            <option value="CNT">Canada Newfoundland Time (CNT)</option>
+                            <option value="AGT">Argentina Standard Time (AGT)</option>
+                            <option value="BET">Brazil Eastern Time (BET)</option>
+                            <option value="CAT">Central African Time (CAT)</option>
+                            <option value="GMT">Greenwich Mean Time (GMT)</option>
+                            <option value="ECT">European Central Time (ECT)</option>
+                            <option value="EET">Eastern European Time (EET)</option>
+                            <option value="ART">(Arabic) Egypt Standard Time (ART)</option>
+                            <option value="EAT">Eastern African Time (EAT)</option>
+                            <option value="MET">Middle East Time (MET)</option>
+                            <option value="NET">Near East Time (NET)</option>
+                            <option value="PLT">Pakistan Lahore Time (PLT)</option>
+                            <option value="IST">India Standard Time (IST)</option>
+                            <option value="BST">Bangladesh Standard Time (BST)</option>
+                            <option value="VST">Vietnam Standard Time (VST)</option>
+                            <option value="CTT">China Taiwan Time (CTT)</option>
+                            <option value="JST">Japan Standard Time (JST)</option>
+                            <option value="ACT">Australia Central Time (ACT)</option>
+                            <option value="AET">Australia Eastern Time (AET)</option>
+                            <option value="SST">Solomon Standard Time (SST)</option>
+                            <option value="NST">New Zealand Standard Time (NST)</option>
+                        </select>
+                    </div>
+
+                    <button id="submitButton" type="submit" class="btn btn-primary block full-width m-b">Register</button>
+
+                    <p class="text-muted text-center"><small>Already have an account?</small></p>
+                    <a class="btn btn-sm btn-white btn-block" href="/login">Login</a>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-12 text-right">
+            <a href="/terms"><span style="color:#bbb">Terms</span></a> / <a href="/privacy"><span style="color:#bbb">Privacy</span></a>
+        </div>
+    </div>
+</div>
+<% include ../partials/home/contactFooter %>
+
+<% include ../partials/home/footerScripts %>
+
+<script>
+
+    <% if (!dev) { %>
+        if (location.protocol == 'http:') {
+            window.location = '<%- application.branding.signupUrl %>';
+        }
+    <% } %>
+
+    $("#signup").submit(function(event) {
+        event.preventDefault();
+
+        if ($('#password').val() != $('#passwordConfirm').val()) {
+            Page.showMessage('Passwords do not match.');
+            return false;
+        }
+
+        $("#submitButton").prop('disabled', true);
+        $("body").css("cursor", "progress");
+
+        $.post('<%- application.branding.signupUrl %>', $(this).serialize(), function(result) {
+
+            var data = {
+                Email: $('[name=username]').val(),
+                Created: new Date().toISOString(),
+                'First Name': $('[name=firstName]').val(),
+                'Last Name': $('[name=lastName]').val(),
+                'Timezone': $('[name=timezoneId]').val()
+            };
+
+            gator.setPerson($('[name=username]').val(), data);
+            data.id = data.Email;
+
+            gator.logOutbound('Signup', '<%- application.branding.postSignupUrl %>', data);
+        }).fail(function(jqXHR, textStatus, error) {
+            $("body").css("cursor", "default");
+            $("#submitButton").prop('disabled', false);
+            Data.showError(jqXHR, textStatus, error, false);
+        });
+    });
+</script>
+</body>
+</html>

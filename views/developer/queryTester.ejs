@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/report/header %>
+    <% include ../partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include ../partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row white-bg">
+
+                <% include ../partials/master/message %>
+
+                <div class="col-lg-12">
+                    <h1>Query Tester</h1>
+                    Test API queries by entering query settings in the form below.  This form automatically adds your session's access token to the query.
+                    <br><br>
+                    <form role="form" method="get">
+                        <div class="form-group"><label>Settings</label><br />
+                            <textarea name="query" id="query" rows="12" cols="110" spellcheck="false"><%- JSON.stringify(req.params.query, null, 4) %></textarea>
+                        </div>
+                        <div class="form-group"><label>Results Format:</label>
+                            &nbsp;&nbsp;<input type=radio value="table" name="format"<%- (req.params.format != 'json' ? ' checked' : '') %>> Table
+                            &nbsp;&nbsp;<input type=radio value="json" name="format"<%- (req.params.format == 'json' ? ' checked' : '') %>> JSON
+                        </div>
+                        <div>
+                            <button onclick="runQuery(); return false" class="btn btn-sm btn-primary m-t-n-xs" type="submit"><strong id="formSubmit">Run Query</strong></button>
+                        </div>
+                    </form>
+                    <div class="row white-bg">
+                    <span id="results-container" style="visibility: hidden">
+                        <div class="col-lg-12">
+                            <h2>Results</h2>
+                            <div id="results-table">&nbsp;</div>
+                        </div>
+                    </span>
+                    </div>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+<% include ../partials/report/footerScripts %>
+<script type="text/javascript" src="/js/yaml.min.js"></script>
+
+<script>
+
+    var report = new Report();
+
+    window.onpopstate = function(settings) {
+
+        if (settings && settings.state) {
+            restoreFormData(settings.state.formData);
+
+            report.pageOptions.tableContainer = getFormat() == 'table' ? 'results-table' : null;
+            report.tableData = settings.state.result;
+            report.render();
+
+            if (getFormat() == 'json') {
+                $('#results-container').css('visibility', 'visible');
+                $('#results-table').html('<pre>' + JSON.stringify(settings.state.result, null, 4) + '</pre>');
+            }
+        }
+    };
+
+    function getFormData() {
+
+        var ret = {
+            format: getFormat(),
+            query: $("#query").val()
+        };
+
+        return ret;
+    }
+
+    function restoreFormData(formData) {
+        $("#query").val(formData.query);
+        $("input[name=format][value=" + formData.format + "]").prop('checked', true);
+    }
+
+    function getFormat() {
+        return $("input:radio[name=format]:checked").val();
+    }
+
+    function runQuery() {
+
+        try {
+
+            report.pageOptions = {
+                //chartContainer: 'results-chart',
+                tableContainer: getFormat() == 'table' ? 'results-table' : null,
+                query: JSON.parse($('#query').val())
+                //legendContainer: 'results-legend'
+            }
+
+            report.run(function(err) {
+
+                if (!err) {
+                    var result = report.tableData;
+                    $('#results-container').css('visibility', 'visible');
+
+                    if (getFormat() == 'json') {
+                        $('#results-table').html('<pre>' + JSON.stringify(result, null, 4) + '</pre>');
+                    }
+
+                    if (history.pushState) {
+                        history.pushState( { result: result, formData: getFormData() }, '',
+                                window.location.href.split('?')[0] + '?form=' + encodeURIComponent(JSON.stringify(getFormData())) + '&query=' + encodeURIComponent($("#query").val())
+                        );
+                    }
+                } else {
+                    Page.showMessage(err);
+                }
+            });
+        } catch(err) {
+            Page.alert('Error', err.message, 'error');
+        }
+    }
+
+    $(document).ready(function() {
+        try {
+
+            var formData = Utils.getParam('form', window.location.search);
+            var query = Utils.getParam('query', window.location.search)
+
+            if (formData) {
+                restoreFormData(JSON.parse(formData));
+                runQuery();
+            }
+        } catch(err) {
+            Page.showMessage(err.message);
+        }
+    });
+
+</script>
+
+</body>
+</html>

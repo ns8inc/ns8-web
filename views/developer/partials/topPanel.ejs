@@ -1,0 +1,30 @@
+<div class="row border-bottom">
+    <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0; z-index: 2011">
+
+        <div class="navbar-header">
+
+            <form role="form" class="form-inline">
+                <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#">
+                    <i class="fa fa-bars"></i>
+                </a>
+            </form>
+        </div>
+        <ul class="nav navbar-top-links navbar-right hideAt600">
+            <li>
+                <h3 class="app-title">&nbsp;&nbsp;Dev Help</h3>
+            </li>
+            <li>
+                <% if (req.session) { %>
+                <a href="/logout">
+                    <i class="fa fa-sign-out"></i> Log out
+                </a>
+                <% } else {%>
+                <a href="/login">
+                    <i class="fa fa-sign-in"></i> Log in
+                </a>
+                <% }%>
+            </li>
+        </ul>
+    </nav>
+</div>
+

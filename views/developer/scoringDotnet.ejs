@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+    <link href="/codemirror/codemirror.css" rel="stylesheet">
+    <link href="/codemirror/theme/blackboard.css" rel="stylesheet">
+
+    <style>
+        .CodeMirror {
+            height: 1350px;
+        }
+    </style>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content animated">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+                    <h1>Realtime User Scoring/Profiling</h1>
+                    <h2>.NET Example</h2>
+                    <br>The API can be called from any .NET project (web, forms, console, etc.).  The following is an example console application that demonstrates how to make the calls in .NET.
+                    <br><br><textarea id="code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Web;
+using System.Net;
+using System.IO;
+
+namespace ConsoleApplication1
+{
+    public class Class1
+    {
+
+        //  The user scoring/profiling endpoint.
+        public const string API_URL = "https://api.gator.io/v1/score";
+
+        static void Main(string[] args)
+        {
+            Class1.CreateObject();
+        }
+
+        private static void CreateObject()
+        {
+            //  To use the API in production, create an account and get an access token from the gator.io website.  Then assign it to the accessToken variable below.  Calls
+            //  without an access token will be rate limited.
+            string accessToken = "";  //  change this to an access token for production use
+
+            //  set up the parameters for the API call
+            string ip = "72.203.234.33";    //  The I.P. address of the user
+
+            //  the user agent of the user, if known
+            string ua = "Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405";
+
+            //  the url of the request to your platform
+            string url = "http://www.mysite.com?utm_campaign=BingAds";
+
+            //  the referrer of the request to your platform - this could be in the HTTP_REFERER header of the request
+            string referrer = "http://bing.com/search?q=car";
+
+            //  encode the request parameters
+            string query = API_URL
+                + "?accessToken=" + accessToken
+                + "&ip=" + ip
+                + "&ua=" + HttpUtility.UrlEncode(ua)
+                + "&url=" + HttpUtility.UrlEncode(url)
+                + "&referrer=" + HttpUtility.UrlEncode(referrer);
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(query);
+            request.Method = "GET";
+
+            try
+            {
+                WebResponse webResponse = request.GetResponse();
+                using (Stream webStream = webResponse.GetResponseStream())
+                {
+                    if (webStream != null)
+                    {
+                        using (StreamReader responseReader = new StreamReader(webStream))
+                        {
+                            string response = responseReader.ReadToEnd();
+                            Console.Out.WriteLine(response);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine(e.Message);
+            }
+        }
+    }
+}</textarea>
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<script src="/codemirror/codemirror.js"></script>
+<script src="/codemirror/mode/clike/clike.js"></script>
+<% include ../partials/master/footerScripts %>
+
+<script>
+
+    $(document).ready(function() {
+
+        CodeMirror.fromTextArea(document.getElementById("code"), {
+            mode:  "clike",
+            theme: "blackboard",
+            lineNumbers: true,
+            matchBrackets: true,
+            styleActiveLine: true
+        });
+    });
+</script>
+</body>
+</html>

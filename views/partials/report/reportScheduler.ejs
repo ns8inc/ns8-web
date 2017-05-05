@@ -1,0 +1,192 @@
+
+<div class="modal inmodal" id="scheduledReportCreateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fa fa-email modal-icon"></i>
+                <h4 class="modal-title">Schedule Report</h4>
+                <small class="font-bold">Schedule this report for delivery.</small>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Schedule Report Name:</label>
+                    <input type="text" id="schedRptName" class="form-control"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Recipients:</label><small style="margin-left:10px;">(comma separated list allowed.)</small>
+                    <input type="text" id="schedRptRecip" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Subject:</label>
+                    <input type="text" id="schedRptSubject" class="form-control"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Attachment Type:</label>
+                    <select class="form-control m-b" name="schedRptAttach" id="schedRptAttach">
+                        <option value="0">None</option>
+                        <option value="1">PDF</option>
+                        <option value="2">Excel</option>
+                        <option value="3">Word</option>
+                        <option value="4">CVS</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Recurrence:</label>
+                    <select class="form-control m-b" name="schedRptRecur" id="schedRptRecur">
+                        <option value="0">Once</option>
+                        <option value="1">Daily</option>
+                        <option value="2">Weekly</option>
+                        <option value="3">Monthly</option>
+                        <option value="4">Quarterly</option>
+                    </select>
+                </div>
+
+                <div class="form-group freqDetail hide" id="WeeklyFrequency">
+                    <div class="btn-group btn-schedrept-day">
+                        <button class="btn btn-info btn-schedRptWeek" id="dailyMon" type="button" title="Monday" data-value="0">M</button>
+                        <button class="btn btn-white btn-schedRptWeek" id="dailyTue" type="button" title="Tuesday" data-value="1">T</button>
+                        <button class="btn btn-white btn-schedRptWeek" id="dailyWed" type="button" title="Wednesday" data-value="2">W</button>
+                        <button class="btn btn-white btn-schedRptWeek" id="dailyThu" type="button" title="Thursday" data-value="3">T</button>
+                        <button class="btn btn-white btn-schedRptWeek" id="dailyFri" type="button" title="Friday" data-value="4">F</button>
+                        <button class="btn btn-white btn-schedRptWeek" id="dailySat" type="button" title="Saturday" data-value="5">S</button>
+                        <button class="btn btn-white btn-schedRptWeek" id="dailySun" type="button" title="Sunday" data-value="6">S</button>
+                    </div>
+                    <input type="hidden" id="schedRptSelDay" class="form-control" value="0"/>
+                </div>
+
+                <div class="form-group  freqDetail hide" id="MonthlyFrequency">
+                    <label>Day of Month:</label>
+                    <select class="form-control m-b" name="schedRptFreqMonth" id="schedRptFreqMonth">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                        <option value="24">24</option>
+                        <option value="25">25</option>
+                        <option value="26">26</option>
+                        <option value="27">27</option>
+                        <option value="28">28</option>
+                        <option value="99">Last Day</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Description:</label>
+                    <textarea class="form-control" id="schedRptDescr" name="schedRptDescr" ></textarea>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="createScheduleReport(); return false">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            $(".freqDetail").addClass('hide');
+            console.log('ready hide');
+           // $('.freqDetail').hide();
+        });
+
+        function createScheduleReport() {
+            var schedName = $('#schedRptName').val();
+            var schedTo = $('#schedRptRecip').val();
+            var schedSubject = $('#schedRptSubject').val();
+            var schedDesc = $('#schedRptDescr').val();
+            var schedAttachmentType = $('#schedRptAttach').val();
+            var schedRecur = $('#schedRptRecur').val();
+            var schedFreq;
+            var schedQuery = encodeURIComponent(window.location.pathname + window.location.search);
+
+            if(schedRecur && schedRecur == '2') {
+                schedFreq = $("#schedRptSelDay").val();
+            }
+            else if (schedRecur && schedRecur == '3') {
+                schedFreq = $('#schedRptFreqMonth').val();
+            }
+            else {
+                schedFreq = 0;
+            }
+
+            var frm = {
+                name: schedName,
+                query: schedQuery,
+                recipients: schedTo,
+                subject: schedSubject,
+                desc: schedDesc,
+                attachmentFormat: schedAttachmentType,
+                recur: schedRecur,
+                freq: schedFreq
+            }
+
+            console.log(JSON.stringify(frm));
+
+            Data.submitForm('/setup/scheduledReports/', frm, function(result){
+
+                if(result) {
+                    Page.showMessage("result was received.");
+                    //Page.showMessage(result.data.scheduledReport.name + " was created.");
+                }
+                $('#scheduledReportCreateModal').modal('hide');
+            });
+
+        }
+        $(document).ready(function(){
+            $('#schedRptRecur').change(function(){
+                console.log('change freq');
+                $(".freqDetail").removeClass('hide');
+                $(".freqDetail").addClass('hide');
+                var freq = $(this).val();
+                if(freq == "2"){
+                    console.log('weekly selected');
+                    $('#WeeklyFrequency').removeClass('hide');
+                }
+                else if(freq == "3"){
+                    console.log('monthly selected');
+                    $('#MonthlyFrequency').removeClass('hide');
+                }
+                else {
+                    console.log('other selected');
+                }
+            });
+
+            $('.btn-schedrept-day > .btn-schedRptWeek').click(function(){
+                $('.btn-schedrept-day > .btn-schedRptWeek').removeClass('btn-info');
+                $('.btn-schedrept-day > .btn-schedRptWeek').removeClass('btn-white');
+                $('.btn-schedrept-day > .btn-schedRptWeek').addClass('btn-white');
+                $(this).removeClass('btn-white');
+                $(this).addClass('btn-info');
+                $('#schedRptSelDay').val($(this).data('value'));
+            });
+
+        });
+    </script>
+</div>
+
+

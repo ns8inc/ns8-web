@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row white-bg">
+
+                <% include partials/master/message %>
+
+                <div class="col-lg-8">
+                    <h1 id="title">Numeric Formatting Options</h1>
+                    Numbers can be formatted to look like currency, percentages, times, or even plain old numbers with decimal places, thousands, and abbreviations.
+                    <br><br>
+                    <h3>Numbers</h3>
+                    <table id="format-numbers" class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Format</th>
+                            <th>String</th>
+                        </tr>
+                        </thead>
+                        <tbody><tr><td>10000</td><td>0,0.0000</td><td>10,000.0000</td></tr><tr><td>10000.23</td><td>0,0</td><td>10,000</td></tr><tr><td>10000.23</td><td>+0,0</td><td>+10,000</td></tr><tr><td>-10000</td><td>0,0.0</td><td>-10,000.0</td></tr><tr><td>10000.1234</td><td>0.000</td><td>10000.123</td></tr><tr><td>10000.1234</td><td>0[.]00000</td><td>10000.12340</td></tr><tr><td>-10000</td><td>(0,0.0000)</td><td>(10,000.0000)</td></tr><tr><td>-0.23</td><td>.00</td><td>-.23</td></tr><tr><td>-0.23</td><td>(.00)</td><td>(.23)</td></tr><tr><td>0.23</td><td>0.00000</td><td>0.23000</td></tr><tr><td>0.23</td><td>0.0[0000]</td><td>0.23</td></tr><tr><td>1230974</td><td>0.0a</td><td>1.2m</td></tr><tr><td>1460</td><td>0 a</td><td>1 k</td></tr><tr><td>-104000</td><td>0a</td><td>-104k</td></tr><tr><td>1</td><td>0o</td><td>1st</td></tr><tr><td>52</td><td>0o</td><td>52nd</td></tr><tr><td>23</td><td>0o</td><td>23rd</td></tr><tr><td>100</td><td>0o</td><td>100th</td></tr></tbody>
+                    </table>
+
+                    <br><h3>Currency</h3>
+                    <table id="format-currency" class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Format</th>
+                            <th>String</th>
+                        </tr>
+                        </thead>
+                        <tbody><tr><td>1000.234</td><td>$0,0.00</td><td>$1,000.23</td></tr><tr><td>1000.2</td><td>0,0[.]00 $</td><td>1,000.20 $</td></tr><tr><td>1001</td><td>$ 0,0[.]00</td><td>$ 1,001</td></tr><tr><td>-1000.234</td><td>($0,0)</td><td>($1,000)</td></tr><tr><td>-1000.234</td><td>$0.00</td><td>-$1000.23</td></tr><tr><td>1230974</td><td>($ 0.00 a)</td><td>$ 1.23 m</td></tr></tbody>
+                    </table>
+
+                    <br><h3>Percentages</h3>
+                    <table id="format-percentage" class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Format</th>
+                            <th>String</th>
+                        </tr>
+                        </thead>
+                        <tbody><tr><td>1</td><td>0%</td><td>100%</td></tr><tr><td>0.974878234</td><td>0.000%</td><td>97.488%</td></tr><tr><td>-0.43</td><td>0 %</td><td>-43 %</td></tr><tr><td>0.43</td><td>(0.000 %)</td><td>43.000 %</td></tr></tbody>
+                    </table>
+
+                    <br><h3>Time</h3>
+                    <table id="format-time" class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Format</th>
+                            <th>String</th>
+                        </tr>
+                        </thead>
+                        <tbody><tr><td>25</td><td>00:00:00</td><td>0:00:25</td></tr><tr><td>238</td><td>00:00:00</td><td>0:03:58</td></tr><tr><td>63846</td><td>00:00:00</td><td>17:44:06</td></tr></tbody>
+                    </table>
+
+                    <br><h3>Bytes</h3>
+                    <table id="format-bytes" class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Format</th>
+                            <th>String</th>
+                        </tr>
+                        </thead>
+                        <tbody><tr><td>100</td><td>0b</td><td>100B</td></tr><tr><td>2048</td><td>0 b</td><td>2 KB</td></tr><tr><td>7884486213</td><td>0.0b</td><td>7.3GB</td></tr><tr><td>3467479682787</td><td>0.000 b</td><td>3.154 TB</td></tr></tbody>
+                    </table>
+
+                    <br><br><br><br><br><br><br>
+                </div>
+            </div>
+        </div>
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+</body>
+</html>

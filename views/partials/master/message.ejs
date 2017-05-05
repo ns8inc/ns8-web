@@ -1,0 +1,61 @@
+<div id="messagePlaceholder"></div>
+<%
+var i, messagesAlert;
+var messagesWarning;
+var messagesInfo;
+
+if (typeof req.flash != 'undefined') {
+    var messages = req.flash();
+    messagesAlert = messages['error'];
+    messagesWarning = messages['warning'];
+    messagesInfo = messages['info'];
+}
+
+if (messagesAlert) {
+
+    for (i = messagesAlert.length - 1; i >= 0; i--) {
+        %>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-danger alert-dismissable">
+                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">&times;</button>
+                    <strong>Error!</strong> <%= messagesAlert[i] %>
+                </div>
+            </div>
+        </div>
+        <%
+    }
+}
+
+if (messagesWarning) {
+
+    for (i = messagesWarning.length - 1; i >= 0; i--) {
+        %>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-warning alert-dismissable">
+                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">&times;</button>
+                    <strong>Warning!</strong> <%= messagesWarning[i] %>
+                </div>
+            </div>
+        </div>
+        <%
+    }
+}
+
+if (messagesInfo) {
+
+    for (i = messagesInfo.length - 1; i >= 0; i--) {
+        %>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="alert alert-success alert-dismissable">
+                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">&times;</button>
+                    <%= messagesInfo[i] %>
+                </div>
+            </div>
+        </div>
+        <%
+    }
+}
+%>

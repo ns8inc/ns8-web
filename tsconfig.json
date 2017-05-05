@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES6",
+        "sourceMap": true,
+        "removeComments": true
+    },
+    "types": "./ns8-web.d.ts",
+    "exclude": [
+        "node_modules"
+    ]
+}

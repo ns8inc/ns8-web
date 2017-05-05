@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+                    <h1>Access Tokens</h1>
+                    <br />
+                    Access tokens are required for native API and REST API calls.  An access token identifies both the project and the rights that are allowed.
+                    <br><br>
+                    To manage access tokens, login to your account and <a href="/accessTokens">go here</a>.
+                    <br><br>
+                    You can specify access right for each access token.  They are:
+                    <table class="table">
+                        <tr><td><b>Push</b></td><td>This is needed if the app is tracking data.  For example, to log an event from an app would require push access.</td></tr>
+                        <tr><td><b>Query</b></td><td>This allows the app to query data from the project.  For example, a business intelligence dashboard would require query access.</td></tr>
+                    </table>
+                    It is required that all API calls using access tokens are called over https.  This ensures the access token, call and results are encrypted during transit.  If you attempt
+                    to make an API call on a non-secure protocol, you will get the following warning:
+                    <br><br>
+                    <code>
+                        The API requires the usage of the https protocol.  By calling this api on an unsecure request, you may have exposed your access token.
+                        Please revoke the access token used and only issue secure requests to this API.
+                    </code>
+                    <br /><br /><br /><br />
+
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

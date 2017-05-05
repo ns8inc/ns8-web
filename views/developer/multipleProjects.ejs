@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>Tracking multiple projects on one page</h1>
+                    You can create multiple trackers, each with its own project.&nbsp; The standard tracking script has this code:
+                    <br /><br />
+<pre>
+<%- application.branding.scriptName %> = new Aggregator(12345);
+<%- application.branding.scriptName %>.logPageview(location.pathname);
+</pre>
+                    <br />
+                    This creates a tracker for the project with id 12345 and posts a pageview to gator (see the Manage Projects menu item to get the tracking scripts and project ids).
+                    <br /><br />
+                    To create another tracker, add this example code:
+                    <br /><br />
+<pre>
+var project2 = new Aggregator(678910);
+<br />project2.logPageview(location.pathname);
+</pre>
+                    <br />
+                    This creates a new tracker for the project with the id of 678910.&nbsp; It can be used throughout the page, just like the standard tracker.&nbsp; For example, to track an event, you would call:
+                    <br /><br />
+<pre>
+project2.logEvent('MyEvent');
+</pre>
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+    <link href="/query-builder/css/query-builder.default.css" rel="stylesheet">
+</head>
+<body class="fixed-navigation">
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <% include partials/attributesForm/body %>
+        </div>
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+<% include partials/attributesForm/script %>
+</body>
+</html>

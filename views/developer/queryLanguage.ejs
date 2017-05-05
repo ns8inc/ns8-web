@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>Query Definition Language</h1>
+                    To generate a report, POST JSON with the options below to <code><%- settings.apiUrl %>/analytics/query.</code>
+                    <br /><br />
+                    <a href="/developer/entities">Click here for the list of standard entities and attributes</a><br />
+                    <br><a href="/developer/tools/querytester">Click here for the query tester</a><br />
+                    <br>
+                    <h3>A minimal call:</h3>
+                    <pre>{ "entity": "sessions", "projectId": "<i>Your project id</i>", "timeframe": "today", "attributes": "sessions", "group": "browser" }</pre>
+                    <br>
+                    <h3>How to use custom attributes on sessions, events and people:</h3>
+                    Use the notation <i>entity.attribute</i> in queries, like <code>event.color</code>.  For example:
+                    <br><br>
+                    <pre>{ "attributes": "event.color, session.multivariateKey" }</pre>
+                    <br><h2>Options:</h2>
+                    <div class="row white-bg">
+                        <div class="col-lg-12">
+                            <div id="results">&nbsp;</div>
+                        </div>
+                    </div>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+<script>
+    var zones = "";
+    var timezones = <%- JSON.stringify(timezones) %>;
+
+    for (var t = 1; t < timezones.length; t++) {
+        zones += '<code>' + timezones[t].code + '</code> - ' + timezones[t].name + '<br />';
+    }
+
+    var elements = [
+        { name: "projectId", required: true, type: "integer", description: "What project to query.  This is the same project id that is on the tracking script."
+        },
+        { name: "entity", required: true, type: "string", description: "What data entity to query on.  Defaults to \"sessions\".  Possible values are \"sessions\", \"events\" and \"people\".  For example, a session query may look like this: " +
+        "<br><br><pre>{ \"entity\": \"sessions\", \"projectId\": \"<i>Your project id</i>\", \"timeframe\": \"today\", \"attributes\": \"country, score\" }</pre>" +
+        "and an event query example that shows the day's events:" +
+        "<br><pre>{ \"entity\": \"events\", \"projectId\": \"<i>Your project id</i>\", \"timeframe\": \"today\", \"attributes\": \"eventName, eventDateTime\" }</pre>"
+        },
+        { name: "timeframe", required: true, type: "string or array", description: "The timeframe of the report.  This can have the following formats:<br /><br />" +
+        "<ul><li>A simple date string in yyyy-mm-dd format: <code>\"2016-01-01\"</code><br>This will return the data from this value for the full day specified." +
+        "<li>A range of days in a array: <code>[ \"2016-01-01\", \"2016-01-07\" ]</code>" +
+        "<li>A simple month string in yyyy-mm format: <code>\"2016-01\"</code><br>This will return the data from this value for the full month specified." +
+        "<li>A range of months in a array: <code>[ \"2016-01\", \"2016-02\" ]</code>" +
+        "<li>A preset timeframe:<br />" +
+        "<code>today</code> - Report on all data for the current day.<br />" +
+        "<code>yesterday</code> - Report on all data for the prior day.<br />" +
+        "<code>thisMonth</code> - Report on all data for the current month.<br />" +
+        "<code>lastMonth</code> - Report on all data for last month.<br />" +
+        "<code>last<b>[N]</b>Days</code> - Report on all data for last N days.  For example <code>last7Days</code>.<br />" +
+        "<code>last<b>[N]</b>Hours</code> - Report on all data for last N hours.  For example <code>last24Hours</code>.<br />" +
+        "<code>last<b>[N]</b>Minutes</code> - Report on all data for last N minutes.  For example <code>last15Minutes</code>.<br />" +
+        "</ul>"
+        },
+        { name: "group", required: false, type: "string", description: "Example: <code>\"countryCode, searchEngine\"</code><br /><br />The data grouping for the report. Results are grouped by " +
+        "this element or elements." },
+        { name: "attributes", required: true, type: "string", description: "Example: <code>\"avgPageViews, bounceRate\"</code><br /><br />A comma separated list of attribute names to include in the results.  " +
+        "For a list of standard entities and attributes, see our <a href='/developer/entities'>list of entities and their attributes</a>." },
+        { name: "sort", required: false, type: "object or string", description: "Examples:<br /><br /><code>\"bounceRate\"</code><br /><code>{ \"sessions\": -1 }</code>" +
+        "<br /><code>{ \"platform\": 1, \"sessions\": -1 }</code><br /><br />The sort order to return the results in.  The order of the sorting is determined by the 1 or -1. " +
+        " Ascending order is 1, descending order is -1." },
+        { name: "filter", required: false, type: "object", description: "This restricts the data set to what matches the filter.  This would be used, for instance to show browser share only on desktop:<br />" +
+        "<br />A filter has the following syntax:" +
+        "<br /><code>{ attribute: { operator: value } }</code>" +
+        "<br /><br />Where <code>attribute</code> is a standard or custom attribute. <code>Operator</code> is a comparison operator, and <code>value</code> is the value to " +
+        "compare the attribute to. Operators are always preceeded with a $.  Valid operators depend on the type of attribute." +
+        "<br /><br />For example to filter based on the user's browser being Firefox, use the following syntax:" +
+        "<br /><code>{ \"browser\": { \"$eq\": \"Firefox\" } }</code>" +
+        "<br /><br />The default operator is <code>$eq</code>, so the above filter can also be simplified to:<code><br />{ \"browser\": \"Firefox\" }</code>" +
+        "<br /><br />To add conditions, you can comma separate items.  In this case, all conditions must match.  To show only Firefox users running on iOS, use this:" +
+        "<br /><code>{ \"browser\": \"Firefox\", \"platform\": \"iOS\" }</code>" +
+        "<br /><br /><h4>The supported comparison operators are:</h4> " +
+        "<table class=\"table\"><tr><th>Operator</th><th>Syntax</th><th>Description</th><th>Applies to:</th></tr>" +
+        "<tr><td>$eq</td><td><code>{ attribute: { \"$eq\": value } }</code><br />or<br/><code>{ attribute: value }</code></td><td>The attribute and value are equal.</td><td>All attributes</td></tr>" +
+        "<tr><td>$ne</td><td><code>{ attribute: { \"$ne\": value } }</code></td><td>The attribute and value are not equal.</td><td>All attributes</td></tr>" +
+        "<tr><td>$in</td><td><code>{ attribute: { \"$in\": [ value1, value2, ... ] } }</code></td><td>The attribute is in an array of values.  For example: { browser: { $in: [ 'Chrome', 'Firefox' ] } } </td><td>String and numeric</td></tr>" +
+        "<tr><td>$nin</td><td><code>{ attribute: { \"$nin\": [ value1, value2, ... ] } }</code></td><td>The attribute is not in an array of values.  For example: { browser: { $nin: [ 'Opera', 'Windows' ] } } </td><td>String and numeric</td></tr>" +
+        "<tr><td>$gt</td><td><code>{ attribute: { \"$gt\": value } }</code></td><td>The attribute is greater than the value.</td><td>String and numeric</td></tr>" +
+        "<tr><td>$gte</td><td><code>{ attribute: { \"$gte\": value } }</code></td><td>The attribute is greater than or equal to the value.</td><td>String and numeric</td></tr>" +
+        "<tr><td>$lt</td><td><code>{ attribute: { \"$lt\": value } }</code></td><td>The attribute is less than the value.</td><td>String and numeric</td></tr>" +
+        "<tr><td>$lte</td><td><code>{ attribute: { \"$lte\": value } }</code></td><td>The attribute is less than or equal to the value.</td><td>String and numeric</td></tr>" +
+        "</table>" +
+        "<h4>The supported logical operators are:</h4> " +
+        "<table class=\"table\"><tr><th>Operator</th><th>Syntax</th><th>Description</th></tr>" +
+        "<tr><td>$or</td><td><code>{ \"$or\": [ { &lt;expression1&gt; }, { &lt;expression2&gt; }, ... ] }</code></td><td>The results must satisfy at least one of the &lt;expressions&gt;.</td></tr>" +
+        "<tr><td>$and</td><td><code>{ \"$and\": [ { &lt;expression1&gt; }, { &lt;expression2&gt; }, ... ] }</code></td><td>The results must satisfy all of the &lt;expressions&gt;.</td></tr>" +
+        "<tr><td>$not</td><td><code>{ \"$not\": { &lt;expression&gt; } }</code></td><td>Returns results that do not match the &lt;expression&gt;.</td></tr>" +
+        "<tr><td>$nor</td><td><code>{ \"$nor\": [ { &lt;expression1&gt; }, { &lt;expression2&gt; }, ... ] }</code></td><td>Returns results that fail all the &lt;expressions&gt;.</td></tr>" +
+        "</table>" +
+        "<h4>Examples:</h4>" +
+        "<br />Return data only for tablets:" +
+        "<br /><code>{ \"deviceType\": \"Tablet\" }</code>" +
+        "<br /><br />The browser is Firefox on any platform except Windows:" +
+        "<br /><code>{ \"browser\": \"Firefox\", \"platform\": { \"$ne\": \"Windows\"} }</code>" +
+        "<br /><br />The browser is Firefox or Chrome:" +
+        "<br /><code>{ \"browser\": { \"$in\": [ \"Firefox\", \"Chrome\" ] } }</code>" +
+        "<br /><br />The browser is Firefox or the search engine is Google:" +
+        "<br /><code>{ \"$or\": [ { \"browser\": \"Firefox\" }, { \"searchEngine\": \"Google\"} ] }</code>"
+        },
+        { name: "limit", required: false, type: "integer", description: "(maximum: 10,000) The number of results to return." },
+        { name: "timezone", required: false, type: "string", description: "(Default: <code>GMT</code>) The timezone to display the report.  This is also used to compute relative start and end times for the report.  Reporting adjusts automatically for daylight savings times.<br /><br />Possible values:<br /><br />" + zones }
+    ];
+
+    var line = function(element) {
+        return "<tr><td>" + element['name'] + "</td><td>" + element['type'] + "</td><td>" + element['required'] + "</td><td>" + element['description'] + "</td></tr>";
+    };
+
+    var html = '<table class="table"><thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>';
+
+    for (var e = 0; e < elements.length; e++) {
+        html += line(elements[e]);
+    }
+
+    html += '</tbody></table>';
+
+    $('#results').html(html);
+</script>
+
+<!--
+        { name: "pivot", required: false, type: "object", description: "Returns data pivoted.  This is useful for displaying 'top' results from a query.<br><br>" +
+        "<table class=\"table\"><tr><th>Option</th><th>Description</th></tr>" +
+        "<tr><td>on</td><td><td>The element to pivot on, for example, 'browser'.</td></tr>" +
+        "<tr><td>metric</td><td><td>The metric to compute, for example, 'share'.</td></tr>" +
+        "<tr><td>sortDirection</td><td><td>Results are sorted by the metric.  This option sets the direction (1 for ascending, -1 for descending, default = -1).</td></tr>" +
+        "</table>" +
+        "<br /><h4>Example:</h4>" +
+        "<br /><pre>" + JSON.stringify({
+            "timeframe": "2016-01",
+            "group": "browser, platform",
+            "sort": {
+                "share": -1
+            },
+            "attributes": "share",
+            "pivot": {
+                "on": "browser",
+                "metric": "share"
+            },
+            "filter": {
+                "valid": 1,
+                "visible": 1
+            }
+        }, null, 4) + "</pre>"
+        },
+-->
+
+</body>
+</html>

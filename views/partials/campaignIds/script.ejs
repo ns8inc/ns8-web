@@ -1,0 +1,54 @@
+<script>
+
+    function getFormData() {
+        return { campaignIds: $('#campaignIds').val() };
+    }
+
+    function validateForm() {
+        var vals = $('#campaignIds').val().split(',');
+
+        for (var v = 0; v < vals.length; v++) {
+            var val = vals[v];
+
+            if (val.indexOf('\'') > -1 || val.indexOf('"') > -1 || val.indexOf('&') > -1 || val.indexOf('<') > -1 || val.indexOf('>') > -1) {
+                Page.alert('Campaign ids cannot contain \' " & < >.');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function submitForm() {
+
+        if (!validateForm())
+            return;
+
+        $.ajax({
+            type: "PUT",    //  if the data object has an id, PUT the update
+            data: getFormData(),
+            success: function (data, status) {
+                Page.alert("Success", "Campaign ids successfully updated.", "success");
+            },
+            error: function (request, status, error) {
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    $('#campaignIds').selectize({
+        plugins: ['drag_drop','remove_button'],
+        persist: false,
+        maxItems: 100,
+        hideSelected: true,
+        create: function(input) {
+            return {
+                value: input,
+                text: input
+            }
+        }
+    });
+
+    $(document).ready(function() {
+
+    });
+</script>

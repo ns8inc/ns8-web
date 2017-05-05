@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/home/header %>
+    <title>Unsubscribe</title>
+</head>
+
+<body class="landing-page subpage">
+
+<div class="loginColumns animated fadeInDown">
+    <% include ../partials/master/message %>
+    <div class="row">
+
+        <div class="col-md-12">
+            <h2 class="subpage-title">Unsubscribe from <%- application.branding.productName %></h2>
+
+            <div class="ibox-content">
+
+                <form class="m-t" role="form" id="entryForm" method="post">
+                    <input type="hidden" name="lid" value="<%- req.query.lid %>">
+                    <input type="hidden" name="sid" value="<%- req.query.sid %>">
+                    <input type="hidden" name="cid" value="<%- req.query.cid %>">
+                    <input type="hidden" name="uid" value="<%- req.query.uid %>">
+                    <input type="hidden" name="aid" value="<%- req.query.aid %>">
+                    <button type="button" onclick = "window.location='/'" class="btn btn-primary block full-width m-b">Cancel - I do not want to unsubscribe</button>
+                    <button type="submit" class="btn btn-primary block full-width m-b">Unsubscribe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<% include ../partials/home/footerScripts %>
+
+<script>
+    $(document).ready(function() {
+
+        $('#entryForm').on('submit', function(evt) {
+            evt.preventDefault();
+
+            $.post('/email/unsubscribe', $(this).serialize(), function(result) {
+                Page.showMessage('You have been unsubscribed.');
+            }).fail(function(jqXHR, textStatus, error) {
+                Data.showError(jqXHR, textStatus, error, true);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>Tracking Outbound Links</h1>
+
+                    An <b>outbound link</b> is when a user clicks on a link on your site to another site.
+                    When a user clicks on a link that goes to another page or site, use the following recommended methods:
+                    <br /><br />
+                    IMPORTANT: Do not put a '<%- application.branding.scriptName %>.logEvent' call in the 'onclick' event on a link.&nbsp; This will not work consistently because browsers will sometimes
+                    abort all processing and navigate to the next page before the event can be recorded.
+                    <br /><br />
+                    This is INCORRECT and will not work in all cases:
+                    <br /><br />
+                    <pre>&lt;a href="/somepage" onclick="<%- application.branding.scriptName %>.logEvent('Exited Signup')"&gt;  <i>wrong</i></pre>
+
+                    <br />
+                    In order to prevent this problem, there is a special call that will consistently track outbound events:
+                    <br /><br />
+
+                    <pre><%- application.branding.scriptName %>.logOutbound(eventName, destinationUrl, data);</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>eventName</code></td><td>The name of the event you wish to track.&nbsp; This is the same as the <%- application.branding.scriptName %>.logEvent event name</td></tr>
+                        <tr><td><code>destinationUrl</code></td><td>The location to navigate to after the event is recorded.  This can a name or a url.</td></tr>
+                        <tr><td><code>data</code></td><td>Data to attach to the event.&nbsp; This is the same as the <%- application.branding.scriptName %>.logEvent data parameter.</td></tr>
+                    </table>
+
+
+                    <h4>Example: Tracking on <code>&lt;a&gt;</code> tags</h4>
+
+                    <pre>&lt;a href="/somepage" onclick="<%- application.branding.scriptName %>.logOutbound('Exited Signup', this.href)"&gt;Leave Page&lt;/a&gt;</pre>
+                    <br>This call will record the 'Exited Signup' event, then navigate to 'this.href', which is the link specified in the tag's HREF attribute.
+
+                    <br /><br />
+
+                    <h4>Example: Tracking on <code>&lt;a&gt;</code> tags (part 2)</h4>
+                    <pre>&lt;a href="#" onclick="<%- application.branding.scriptName %>.logOutbound('Exited Signup', '/somepage')"&gt;Leave Page&lt;/a&gt;</pre>
+                    <br />
+                    This call will record the 'Exited Signup' event, then navigate to '/somepage'.&nbsp; This call differs from the above call since the HREF attribute is not set on the element and therefore needs
+                    to be specified on the <%- application.branding.scriptName %>.logOutbound call.
+
+                    <br /><br /><h4>Example: Tracking on an image click</h4>
+
+                    <pre>&lt;img src="image.gif" onclick="<%- application.branding.scriptName %>.logOutbound('Image Click', '/somepage')"&gt;Leave Page&lt;/a&gt;</pre>
+                    <br />
+                    This method can also be used on DIVs or any other element that will navigate the user off the page.
+
+                    <br /><br />
+                    <h4>Example: Attaching this call to an event</h4>
+
+<pre>
+&lt;a id="myLink" href="#"&gt;Click here to track event&lt;/a&gt;
+&lt;script&gt;
+&nbsp;&nbsp;document.getElementById('myLink').onclick = function () {
+&nbsp;&nbsp;&nbsp;&nbsp;<%- application.branding.scriptName %>.logOutbound('myLink Clicked', '/somepage')
+&nbsp;&nbsp;};
+&lt;/script&gt;
+</pre>
+
+                    <br />
+                    <h4>Example: Attaching this call to an event (using jQuery)</h4>
+
+<pre>
+&lt;a id="myLink" href="#"&gt;Click here to track event&lt;/a&gt;
+&lt;script&gt;
+&nbsp;&nbsp;$('#myLink').click(function () {
+&nbsp;&nbsp;&nbsp;&nbsp;<%- application.branding.scriptName %>.logOutbound('myLink Clicked', '/somepage');
+&nbsp;&nbsp;});
+&lt;/script&gt;
+</pre>
+
+                    <br />
+                    <h4>Example: Attaching this call to all <code>&lt;a&gt;</code> tags (using jQuery)</h4>
+
+<pre>
+&lt;a id="myLink1" href="#"&gt;Click here to track event called 'myLink1'&lt;/a&gt;
+&lt;a id="myLink2" href="#"&gt;Click here to track event called 'myLink2'&lt;/a&gt;
+&lt;script&gt;
+&nbsp;&nbsp;$(function () {
+&nbsp;&nbsp;&nbsp;&nbsp;$('a').click(function () { <%- application.branding.scriptName %>.logOutbound(this.id, this.href) })
+&nbsp;&nbsp;})
+&lt;/script&gt;
+</pre>
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+        <% include ../partials/master/message %>
+
+            <div class="row white-bg">
+                <div class="col-lg-12">
+                    <h1>Entities and Attributes</h1>
+                    The following entities and attributes are available for reporting.
+                </div>
+            </div>
+            <%
+                for (var key in entities) {
+                    if (entities.hasOwnProperty(key)) {
+                        var entity = entities[key];
+            %>
+            <br>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3><%- entity.name %></h3>
+                    <%- entity.description %>
+                    <h3><a data-toggle="collapse" href="#table-<%- entity.name %>"><span class="fa fa-angle-down"></span> view attributes</a></h3>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div id="table-<%- entity.name %>" class="panel-collapse collapse">
+
+                        <div class="row white-bg">
+                            <div class="col-lg-12">
+                                <table class="table" style="width:80%">
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <% var attributes = entity.attributes; for (var i=0; i < attributes.length; i++) { %>
+                                    <tr>
+                                        <td><%=attributes[i].name %></td>
+                                        <td><%=attributes[i].title %></td>
+                                        <td><%=attributes[i].description %></td>
+                                        <td><%=attributes[i].dataType %></td>
+                                    </tr>
+                                    <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%      } %>
+            <% } %>
+        </div>
+
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <div class="row white-bg">
+
+                <% include partials/master/message %>
+
+                <div class="col-lg-12">
+                    <h1>
+                        Projects
+                        <button class="btn btn-md btn-primary pull-right" onclick="window.location='/setup/projects/form'">Create new project</button>
+                    </h1>
+
+                    <% if (req.query.new) { %>
+
+                    <div class="alert alert-info text-lg" role="alert">
+                        <h3>New Project Added</h3>
+                        The next step is to place the tracking script on your pages.  Each project has it's own tracking script.  You can get the tracking script for each project
+                        by clicking on the <strong>Web Script</strong> button by each project.<br>
+                    </div>
+                    <% } %>
+                    <br /><br />
+                    <div id="projects-table">
+                        <table id="dataTable" class="table table-striped table-bordered table-hover order-column" style="width:100%"></table>
+                    </div>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal inmodal fade" id="scriptModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <i class="fa fa-code modal-icon"></i>
+                        <h2 class="modal-title">Web Tracking Script</h2>
+                        <h3 id="scriptProject"></h3>
+                        <small class="font-bold">
+                            Cut and paste this script on every page you wish to track. Place the script directly above the &lt;/head&gt; tag.
+                            <br />Note: Each project has its own unique tracking script.
+                        </small>
+                        <br /><br />For more details on website tracking, visit our <a href="/developer/web/gettingstarted">developer section</a>
+                    </div>
+                    <div class="modal-body">
+                        <pre id="scriptText" style="font-size:11px"></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+<script>
+
+    function getScript(projectId) {
+
+        $.get(apiHost() + 'script/text/' + projectId + '?name=<%- application.branding.scriptName %>', function(data) {
+            if (data)
+                //  this must be text/javascript to support older browsers
+                $('#scriptText').html('&lt;script type="text/javascript"&gt;<br>' + data + '<br>&lt;/script&gt;');
+                $('#scriptProject').html('Project: ' + projectId);
+        });
+    }
+
+    function scriptButtonHtml(project) {
+        var ret = '';
+
+        if (project.type == 0)
+            ret += '<button onclick="getScript(' + project.id + ')" type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#scriptModal">Web Script</button>';
+
+        if (!project.sharedByUserId)
+            ret += '&nbsp; <button type="button" class="btn btn-primary btn-xs" onclick="window.location=\'/accesstokens?projectName=' + encodeURIComponent(project.name) + '&projectId=' + project.id + '\'">Access Tokens</button>';
+
+        return ret;
+    }
+
+    function actionButtonsHtml(project) {
+
+        if (project.sharedByUserId)
+            return '';
+        else
+            return '<button onclick="window.location=(\'/setup/projectshares?projectId=' + project.id + '\')" type="button" class="btn btn-primary btn-xs">Share</button>' +
+                '&nbsp;<button onclick="window.location=(\'/setup/projects/form?id=' + project.id + '\')" type="button" class="btn btn-primary btn-xs">Edit</button>' +
+                '&nbsp;<button onclick="deleteObject(' + project.id + ', \'' + project.name + '\')" type="button" class="btn btn-delete btn-xs" data-toggle="modal" data-target="#modal-confirm">Delete</button>';
+    }
+
+    function configButtonsHtml(project) {
+
+        var ret = '';
+
+        if (!project.sharedByUserId || project.permissions == 'manage') {
+
+            ret += '<button onclick="window.location=(\'/setup/campaignreferrers/' + project.id + '\')" type="button" class="btn btn-primary btn-xs">Campaign Referrers</button>';
+            ret += '&nbsp;<button onclick="window.location=(\'/setup/campaignids/' + project.id + '\')" type="button" class="btn btn-primary btn-xs">Campaign Ids</button>';
+            ret += '&nbsp;<div class="dropdown" style="display:inline-block"><button class="btn btn-primary btn-xs dropdown-toggle" type="button" data-toggle="dropdown">Attributes <span class="caret"></span></button>' +
+                    '<ul class="dropdown-menu">' +
+                    ' <li><a href="/setup/attributes/' + project.id + '?type=session" style="color:#676a6c">On sessions</a></li>';
+
+            if (project.type == 0)
+                ret += ' <li><a href="/setup/attributes/' + project.id + '?type=event" style="color:#676a6c">On Events</a></li>' +
+                        ' <li><a href="/setup/attributes/' + project.id + '?type=person" style="color:#676a6c">On People</a></li>';
+
+            return ret + '</ul></div>';
+        } else {
+            return '';
+        }
+
+    }
+
+    function deleteObject(id, name) {
+
+        Page.confirm('Are you sure?', 'Permanently delete project ' + name + '?', function() {
+            Data.delete('/setup/projects/' + id, function() {
+                window.location = '/setup/projects'
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        var tableCols = [
+            { title: 'Name'},
+            { title: 'Type'},
+            { title: 'Id', className: 'dt-body-right', searchable: false },
+            { title: 'Tracking', orderable: false, className: 'dt-body-right', searchable: false  },
+            { title: 'Configure', orderable: false, className: 'dt-body-right', searchable: false  },
+            { title: 'Action', orderable: false, className: 'dt-body-right', searchable: false  }
+        ];
+
+        var tableRows = [];
+
+        <%  for (var r = 0; r < existingProjects.length; r++) {
+                var scriptButton = 'scriptButtonHtml(' + JSON.stringify(existingProjects[r]) + ')';
+                var actionButton = 'actionButtonsHtml(' + JSON.stringify(existingProjects[r]) + ')';
+                var customizeButton = 'configButtonsHtml(' + JSON.stringify(existingProjects[r]) + ')';
+        %>
+        <%-     'tableRows.push([' +
+                    '"' + existingProjects[r].name + '", ' +
+                    '"' + application.projectDesc(existingProjects[r].type) + '", ' +
+                    existingProjects[r].id + ', ' +
+                    scriptButton + ', ' +
+                    customizeButton + ', ' +
+                    actionButton +
+                 ']);'   %>
+        <%  }  %>
+
+        $('#dataTable').dataTable({
+            data: tableRows,
+            columns: tableCols,
+            responsive: true
+        });
+    });
+</script>
+</body>
+</html>

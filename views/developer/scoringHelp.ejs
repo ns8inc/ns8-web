@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>Realtime User Scoring/Profiling</h1>
+                    <br>The <%- application.branding.productName %> user profiling and scoring API provides the ability to get real-time intel on your users from any platform you are using. It uses a
+                    standard REST interface that returns a JSON object with the profile data. It can be integrated into any major platform.
+
+                    <br /><br /><h3>Example:</h3>
+                    One of the simplest ways to access the API is with an HTTPS call.  Click on the link below for an example using our free version:
+                    <br /><pre>
+<a target="sample" href="https://api.gator.io/v1/score?ip=72.211.250.156&ua=Mozilla%2F5.0%20(Windows%20NT%206.1%3B%20WOW64)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F42.0.2311.135%20Safari%2F537.36&url=http%3A%2F%2Fmysite.com%2Fsearch%3Futm_campaign%3DBingAds&referrer=http%3A%2F%2Fbing.com%2Fsearch%3Fq%3Dbicycles">https://api.gator.io/v1/profile?ip=72.211.250.156&ua=Mozilla%2F5.0%20(Windows%20NT%206.1%3B%20WOW64)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F42.0.2311.135%20Safari%2F537.36&url=http%3A%2F%2Fmysite.com%2Fsearch%3Futm_campaign%3DBingAds&referrer=http%3A%2F%2Fbing.com%2Fsearch%3Fq%3Dbicycles</a>
+</pre>
+                    <br />This returns a JSON object with the user's score and profile.  An example with comments:
+                    <br /><pre>
+{
+    "code": 200,                            //  the HTTP status code of the call - 200 means the call was successfully processed
+    "data": {
+        "score": 520,                       //  a score less than 100 indicates a very high likelyhood of a bot or an invalid user
+        "offense": null,                    //  this identifies the primary reason a user has a low score (colocation, collusion, etc.)
+        "organization": "Acme, Inc.",       //  the company, ISP, school or governmental agency of the user
+        "searchInfo": {                     //  we detect over 200 search engines
+            "group": "Bing",
+            "name": "Bing",
+            "keys": "bicycles"
+        },
+        "campaign": "BingAds",              //  the pay version aggregates on dozens of attributes, including campaign, source, publisher id,
+                                            //  medium, channel, etc.
+
+        "deviceType": "Mobile",             //  can also be desktop/laptop, tablet, console, TV and handheld.
+        "platformVersion": "iOS 9.2",
+        "platform": "iOS",
+        "isUniversity": false,              //  whether the user is within a university's netblock
+        "geolocation": {                    //  I.P. based geolocation for web users - this is 100% accurate to the country and
+                                            //  roughly 85% accurate to the postal code level.
+            "countryCode": "US",
+            "countryName": "United States",
+            "region": "CA",
+            "city": "Laguna Niguel",
+            "postalCode": "92677",
+            "latitude": 33.5351,
+            "longitude": -117.7052,
+            "dmaCode": 803,                 //  a Designated Market Area (DMA) is a group of counties in the United States that are
+                                            //  covered by a specific group of television stations.
+            "areaCode": 949,
+            "continentCode": "NA",
+            "regionName": "California"
+        },
+        "demographics": {                   //  these are demographics for the postal code the user is in
+            "medianHouseholdIncome": 112620,
+            "averageHomeValue": 798918,
+            "percentWhite": 77.56,
+            "percentBlack": 1.44,
+            "percentHispanic": 15.81,
+            "percentAsian": 10.24,
+            "percentFemale": 51.35,
+            "percent0_14": 21.4,
+            "percent15_24": 12.1,
+            "percent25_34": 10,
+            "percent35_44": 15.3,
+            "percent45_54": 18.3,
+            "percent55_64": 12.7,
+            "percent65Over": 10.1
+        },
+        "browserVersion": "Safari",
+        "browser": "Safari",
+        "status": "This result was delayed intentionally as part of the free version.  Create an account at www.gator.io for full speed access."
+    }
+}</pre>
+
+                    <br><h3>Error Codes</h3>
+                    Any code returned other than 200 indicates an error.  The "message" property will describe the error.  For example:
+                    <br /><pre>
+{
+    "code": 400,
+    "message": "Missing parameter(s): I.P. address"
+}</pre>
+                    <br><h2>Implementation Examples</h2>
+                    All major platforms support REST interfaces.  Here are a few examples on platform-specific implementations:
+                    <br><br>
+                    <ul>
+                        <li><a href="/developer/scoring/node">Node.js</a></li>
+                        <li><a href="/developer/scoring/dotnet">.NET</a></li>
+                        <li><a href="/developer/scoring/https">HTTPS</a></li>
+                        <li><a href="/developer/scoring/curl">CURL</a></li>
+                    </ul>
+
+                    <br><h2>Colocation</h2>
+                    The scoring API is engineered to be extremely fast, returning data in under 5 milliseconds.  However, internet latency will add to that time.  Therefore, our
+                    API can be co-located at the datacenter your servers reside at, which will allow for near real-time access to user information.  Please contact us for
+                    more information.
+                </div>
+            </div>
+        </div>
+        <br><br><br><br>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+<br><br><br><br>
+<% include ../partials/master/footerScripts %>
+</body>
+</html>
+
+<% include ../partials/master/footerScripts %>
+</body>
+</html>

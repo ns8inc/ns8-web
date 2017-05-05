@@ -1,0 +1,28 @@
+This monitors suspicious or fraudulent users and alerts you when the user quality score drops below a threshold.  This is enabled by placing a JavaScript snippet on your pages.
+<br><br>
+We score each user on your website based on algorithms that detect the likelyhood that a user is a bot.  To see how we score users, <a href="/how">click here</a>.
+<br><br>
+User quality is scored as a number from 0-1000.  Lower is worse.  Quality scores are catergorized as follows:
+<br><br>
+
+<table class="table table-hover">
+    <tr>
+        <th>Score Range</th>
+        <th>Category</th>
+    </tr>
+    <tr>
+        <td style="min-width:130px">0 to 99</td><td><strong>Invalid</strong> - there is nearly a certainty that these users are not valid.  Being in this category indicates that the user failed a
+            determinitive test on validity.  The strongest policies should be put in place for these users.</td>
+    </tr>
+    <tr>
+        <td>100 to 200</td><td><strong>Low Quality</strong> - The users failed one or more non-determinitive checks.</td>
+    </tr>
+    <tr>
+        <td>200 to 500</td><td>No major issues found with the users, but it is possible minor issues were found.</td>
+    </tr>
+    <tr>
+        <td>500 to 1000</td><td>In the future, we will be implementing whitelisting checks for users.  If a user passes a whitelist check, they will score above 500.</td>
+    </tr>
+</table>
+Once implemented, there is sophisticated reporting available on the types and origins of the malicious users and bots.
+

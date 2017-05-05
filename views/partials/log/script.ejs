@@ -1,0 +1,306 @@
+<script src="/query-builder/js/query-builder.standalone.min.js"></script>
+<script src="/js/query-builder.custom.js"></script>
+<script src="/typeahead/typeahead.jquery.min.js"></script>
+<script src="/jvectormap/jquery-jvectormap-2.0.4.min.js"></script>
+<script src="/jvectormap/jquery-jvectormap-world-mill.js"></script>
+<script type="text/javascript" src="/js/yaml.min.js"></script>
+
+<script>
+
+    //  set the timezone to the user's timezone
+    moment.tz.setDefault('<%- req.session.user.timezone ? req.session.user.timezone.momentName : 'UTC' %>');
+
+    var segmentsSelectize, customCount = 0, customSegments, suppressUpdates = false;
+    var report = new Report();
+    report.settings = <%- JSON.stringify(definition.settings) %>;       //  set static setting from report definition
+    report.state = <%- JSON.stringify(definition.initialState) %>;      //  set initial state from options
+
+    var attribSelectize = $('#attribs').selectize({
+        options: <%- JSON.stringify(attribOptions) %>,
+        items: Utils.replaceAll(report.state.attributes || '', ' ', '').split(','),
+        plugins: ['drag_drop','remove_button'],
+        delimiter: ',',
+        closeAfterSelect: true,
+        onItemAdd: function () {
+            this.blur();
+        },
+        optgroups:[{ id: 'Custom', name: 'Custom Attributes' }, { id: 'Standard', name: 'Standard Attributes' }],
+        optgroupField: 'optgroup',
+        optgroupLabelField: 'name',
+        optgroupValueField: 'id'
+    });
+
+    function runQuery() {
+
+        if (suppressUpdates)
+            return;
+
+        if (!Filter.validate('filter-builder'))
+            return;
+
+        if (!$('#projects').val()) {
+            Page.showMessage('Please select a project.&nbsp; <a href="/setup/projects/form">Click here</a> to create a new project.');
+            return;
+        }
+
+        if (!$('#attribs').val()) {
+            Page.showMessage('You must select at least one attribute to report on.');
+        } else {
+
+            //  set options for both chart and table
+            report.pageOptions = {
+                projectId: $('#projects').val(),
+                tableContainer: 'results-table',
+                onStateChange: pushState
+            }
+
+            if (report.settings.map)
+                report.pageOptions.mapContainer = 'world-map';
+
+            setState();
+
+            report.run(function(err) {
+
+                if (!err)
+                    pushState();
+                else
+                    Page.doneLoading();
+
+                //  if being exported, notify service that rendering is done
+                if (typeof window.callPhantom === 'function')
+                    window.callPhantom({ status: 'complete' });
+            });
+        }
+    }
+
+    var firstPush = true;
+
+    function pushState() {
+        if (history.pushState) {
+
+            if (firstPush)
+                history.replaceState( { reportState: report.state, reportSettings: report.settings, tableData: report.tableData, chartData: report.chartData }, '',
+                    window.location.href.split('?')[0] + '?options=' + encodeURIComponent(JSON.stringify(report.state)));
+            else
+                history.pushState( { reportState: report.state, reportSettings: report.settings, tableData: report.tableData, chartData: report.chartData }, '',
+                    window.location.href.split('?')[0] + '?options=' + encodeURIComponent(JSON.stringify(report.state)));
+
+            firstPush = false;
+        }
+    }
+
+    window.onpopstate = function(settings) {
+
+        if (settings && settings.state) {
+            report.settings = settings.state.reportSettings;
+            restoreState(settings.state.reportState);
+            report.tableData = settings.state.tableData;
+            report.chartData = settings.state.chartData;
+            report.render();
+        }
+    };
+
+    //  set the report state from the page elements
+    function setState() {
+        if (report.settings.map) {
+            $('#world-map').removeClass('hidden');
+        }
+
+        report.state.isLog = true;
+        report.state.pageLength = 100;
+        report.state.dateLabel = Toolbar.dateLabel;
+        report.state.attributes = $("#attribs").val();
+
+        if (Toolbar.dateLabel == 'Custom') {
+            report.state.dateStart = Toolbar.dateStart;
+            report.state.dateEnd = Toolbar.dateEnd;
+        } else {
+            delete report.state.dateStart;
+            delete report.state.dateEnd;
+        }
+        if ($("#filter-builder").queryBuilder('validate'))
+            report.state.filter = $("#filter-builder").queryBuilder('getMongo');
+        else
+            delete report.state.filter;
+    }
+
+    function restoreState(state) {
+
+        suppressUpdates = true;
+
+        report.state = state;
+
+        if (state.filter && Object.keys(state.filter).length > 0)
+            Filter.setRules('filter-builder', state.filter);
+        else
+            Filter.reset('filter-builder');
+
+        if (report.settings.title)
+            $('#page-title').html(report.settings.title);
+
+        if (state.map)
+            $('#world-map').removeClass('hidden');
+
+        Toolbar.setValues(state.dateLabel, state.dateStart, state.dateEnd, state.dateInterval);
+        Toolbar.draw();
+
+        attribSelectize[0].selectize.clear();
+        state.attributes.split(',').forEach(function(item) {attribSelectize[0].selectize.addItem(item.trim());});
+
+        suppressUpdates = false;
+    }
+
+    var filterOptions = <%- JSON.stringify(filterOptions) %>;
+
+    Page.intro = {
+        steps: []
+    };
+
+    $(document).ready(function() {
+        try {
+
+            suppressUpdates = true;
+
+            Toolbar.initLog(report);
+
+            Filter.init('filter-builder', report.settings.appId || 0, report.state.projectId || <%- req.session.currentProjectId || 0 %>, null, filterOptions);
+
+            //  'filter-builder' is part of the page and can cause updates
+            Filter.configureEmbeddedFilter('filter-builder');
+
+            //  Set initial items based on report.state
+            $('#page-title').html(report.settings.title);
+
+            if (report.state.filter && Object.keys(report.state.filter).length > 0)
+                Filter.setRules('filter-builder', report.state.filter);
+
+            if (report.state) {
+                restoreState(report.state);
+            } else {
+                setState();     //  set defaults
+            }
+            suppressUpdates = false;
+
+            Page.intro.steps.push({
+                intro: "This is a tour of a log page.  It will guide you through the elements on the page and what they are for.  <br><br>Click 'next' to start."
+            });
+
+            if ($('#filter-builder').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#filter-builder'),
+                    intro: "This is used to filter all the data on the report.  Multiple filters can be created and grouped together by logical ANDs and ORs."
+                });
+
+                Page.intro.steps.push({
+                    element: document.querySelector('.group-actions'),
+                    intro: "Create multiple filter criteria by adding and grouping rules."
+                });
+
+                Page.intro.steps.push({
+                    element: document.querySelector('.group-conditions'),
+                    intro: "When you have multiple filter criteria, you can choose whether to logically AND them or OR them."
+                });
+            }
+
+
+            if ($('#world-map').is(':visible')) {
+
+                if (report.settings.map) {
+
+                    Page.intro.steps.push({
+                        element: document.querySelector('#world-map'),
+                        intro: "This map shows the location of each item in the table.  You can hover over each pin to see the attributes of the item.",
+                        position: "left"
+                    });
+                }
+            }
+
+            if ($('#toolbar-prior').is(':visible')) {
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-prior'),
+                    intro: "By clicking on this, the report will change the timeframe one unit back.  For example, if the report is for the month of June, it will move to May and refresh."
+                });
+            }
+
+            if ($('#reportRange').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#reportRange'),
+                    intro: "This lets you pick predefined timeframes, like 'Today'.  It also lets you select custom timeframes from the 'Custom' menu option."
+                });
+            }
+
+            if ($('#toolbar-next').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-next'),
+                    intro: "By clicking on this, the report will change the timeframe one unit forward.  For example, if the report is for the month of May, it will move to June and refresh."
+                });
+            }
+
+            if ($('#toolbar-refresh').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-refresh'),
+                    intro: "This button refreshes the report without reloading the whole page.",
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-dashboard').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-dashboard'),
+                    intro: "This adds the current report to an existing dashboard.  The report will show up as a pod on the dashboard you select.",
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-bookmark').is(':visible')) {
+
+                if (report.settings.bookmarks) {
+
+                    Page.intro.steps.push({
+                        element: document.querySelector('#toolbar-bookmark'),
+                        intro: "This creates a bookmark for the current report.  The bookmark will show up on the menu's 'Bookmark' item.",
+                        position: 'left'
+                    });
+                }
+            }
+
+
+            if ($('#toolbar-columns').is(':visible')) {
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-columns'),
+                    intro: 'This shows a dialog that allows you to:<br>' +
+                    '<ul><li>Customize what columns to display on the table.  You can reorder the columns by dragging and dropping them.</li>' +
+                    '<li>Choose what to group the report on.</li></ul>',
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-export').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-export'),
+                    intro: "This exports the report to a specific format you select, like PDF or CSV.",
+                    position: 'left'
+                });
+            }
+
+            runQuery();
+        } catch(err) {
+            Page.showMessage(err.message);
+        }
+    });
+
+    <% if (!req || !req.query || req.query.format != 'pdf') { %>
+    if (!localStorage.reportIntroPlayed)
+        Page.confirm('Take a tour?', 'Would you like a guided tour of this page?', function() {
+            Page.startIntro();
+        });
+
+    localStorage.reportIntroPlayed = true;
+    <% } %>
+</script>

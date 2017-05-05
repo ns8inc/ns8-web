@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <div class="row white-bg">
+
+                <% include partials/master/message %>
+
+                <div class="col-lg-12">
+                    <h1>Bookmarks</h1>
+                    To create a bookmark, configure and run any report in the application and click on the bookmark icon:&nbsp;&nbsp; <i class="fa fa-bookmark-o" style="font-size: 14px"></i>
+                    <br /><br /><br />
+                    <div id="data-table">
+                        <table id="dataTable" class="table table-striped table-bordered table-hover order-column dataTable"></table>
+                    </div>
+                    <br /><br /><br /><br /><br /><br />
+                </div>
+            </div>
+        </div>
+
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+<script>
+
+    var bookmarks = [], bookmarkObj = <%- JSON.stringify(bookmarks) %>;
+
+    for (var key in bookmarkObj) {
+        if (bookmarkObj.hasOwnProperty(key))
+            bookmarks.push({ name: key, query: bookmarkObj[key] });
+    }
+
+    function setupBookmarkTable() {
+        $('#dataTable').DataTable({
+            data: bookmarks,
+            columns: [
+                { title: "Name" },
+                { title: "Action", className: "dt-body-right" }
+            ],
+            columnDefs : [
+                {
+                    "targets": 0,
+                    "data":  "name",
+                    "render": function (data, type, row, meta) {
+                        return "<a href='" + row["query"] + "'>" +  data  + "</a>";
+                    }
+
+                },
+                {
+                    "targets" : 1,
+                    "data" : "id",
+                    "render": function (data, type, row, meta) {
+                        return '<button onclick="confirmDelete(\'' + Utils.replaceAll(row.name, "'", "\'") + '\'); return false;" type="button" class="btn btn-delete btn-xs">Delete</button>';
+                    }
+                }
+            ]
+        });
+    }
+
+    function confirmDelete(name)
+    {
+        Page.confirm('Delete "' + name + '"', 'Are you sure you want to remove this bookmark?', function(){
+            Data.delete('/setup/bookmarks?name=' + encodeURIComponent(name),function(){
+                location.reload();
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        setupBookmarkTable()
+
+        $('#bookmark-name').focus(function() {
+            $('#bookmark-name').removeClass('has-error');
+        });
+    });
+</script>
+</body>
+</html>

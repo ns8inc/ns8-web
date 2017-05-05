@@ -1,0 +1,284 @@
+<script type="text/javascript" src="/selectize/selectize.min.js"></script>
+<script>
+    var emailList, SMSList, dataTable;
+
+    function toggleDelay() {
+        if ($("input[name='delayOptions']:checked").val() == 'immediate')
+            $('#delayInputDiv').hide();
+        else {
+            $('#delayInputDiv').show();
+        }
+    }
+
+    function populateTable() {
+
+        var options = {
+            paging: false,
+            ajax: "/contacts/data",
+            columnDefs: [
+                {
+                    targets: 0,
+                    data: "name"
+                },
+                {
+                    targets: 1,
+                    render: function (data, type, row) {
+                        var endpoints = '';
+
+                        for (var e = 0; e < row.endpoints.length; e++) {
+                            endpoints += Monitoring.contactTypeIcon(row.endpoints[e].type)+ '&nbsp; ' + row.endpoints[e].value + '<br>';
+                        }
+
+                        return endpoints;
+
+                    }
+                },
+                {
+                    targets: 2,
+                    render: function (data, type, row) {
+                        return row.alertDelay ? row.alertDelay + ' min.' : 'immediately';
+                    }
+                },
+                {
+                    targets: 3,
+                    render: function (data, type, row) {
+                        return '<button onclick="testItem(' + row.id + '); return false" type="button" class="btn btn-primary btn-xs">Test</button>&nbsp;' +
+                            '<button onclick="editItem(' + row.id + '); return false" type="button" class="btn btn-primary btn-xs">Edit</button>&nbsp;' +
+                            '<button onclick="deleteItem(' + row.id + '); return false" type="button" class="btn btn-delete btn-xs">Delete</button>';
+                    }
+                }
+            ]
+        };
+
+        dataTable = $('#tableElement').DataTable(options);
+    }
+
+    function find(id) {
+        var data = getData();
+        for (var c = 0; c < data.length; c++)
+            if (data[c].id == id)
+                return data[c];
+    }
+
+    function getData() {
+        var json = dataTable.ajax.json();
+
+        if (json)
+            return json.data
+        else
+            return [];
+    }
+
+    function deleteItem(id) {
+        var contact = find(id);
+
+        Page.confirm('Are you sure?', 'Delete ' + contact.name + '?', function() {
+
+            $.ajax({
+                type: "DELETE",
+                url: '/contacts/' + contact.id,
+                success: function (data, status) {
+                    dataTable.ajax.reload(null, false);
+                },
+                error: function (request, status, error) {
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+
+    function testItem(id) {
+        var contact = find(id);
+
+        Page.confirm('Send Test', 'This will send a test message to the contact ' + contact.name + '.  Proceed?', function() {
+
+            $.ajax({
+                type: "GET",
+                url: '/contacts/test/' + contact.id,
+                success: function (data, status) {
+                    setTimeout(function() { Page.alert({ title: 'Success', text: 'The test message was sent without error, however that does not guarantee receipt.  Please make sure the message was received.', type: 'info' }); } , 100);
+                },
+                error: function (request, status, error) {
+                    setTimeout(function() { Data.showError(request, status, error); } , 100);
+                }
+            });
+        });
+    }
+
+    function create() {
+        $('#id').val('');
+        $('#name').val('');
+        $('#alertDelay').val('');
+
+        emailList.clear();
+        SMSList.clear();
+
+        $('#delay-immediate').prop('checked', true);
+
+        toggleDelay();
+
+        $('#modal-title').html('Create Contact');
+        $('#modal-create').modal();
+    }
+
+    function editItem(id) {
+        var contact = find(id);
+
+        $('#id').val(contact.id);
+        $('#name').val(contact.name);
+        $('#alertDelay').val(contact.alertDelay);
+
+        emailList.clear();
+        emailList.clearOptions();
+        SMSList.clear();
+        SMSList.clearOptions();
+
+        for (var e = 0; e < contact.endpoints.length; e++) {
+
+            switch (contact.endpoints[e].type) {
+                case 'email':
+                    emailList.createItem(contact.endpoints[e].value);
+                    break;
+                case 'SMS':
+                    SMSList.createItem(contact.endpoints[e].value);
+                    break;
+            }
+        }
+
+        if (contact.alertDelay)
+            $('#delay-timeframe').prop('checked', true);
+        else
+            $('#delay-immediate').prop('checked', true);
+
+        toggleDelay();
+
+        $('#modal-title').html('Edit Contact');
+        $('#modal-create').modal();
+        $('#name').focus();
+    }
+
+    function validateForm() {
+
+        if (!$('#main-form-modal')[0].checkValidity()) {
+            // If the form is invalid, submit it. The form won't actually submit;
+            // this will just cause the browser to display the native HTML5 error messages.
+            $('#contact-create-ok').click();
+            return false;
+        }
+
+        var name = $('#name').val();
+
+        if (name.indexOf('\'') > -1 || name.indexOf('$') > -1 || name.indexOf('"') > -1 || name.indexOf('&') > -1 || name.indexOf('<') > -1 || name.indexOf('>') > -1) {
+            Page.alert('Error', 'Names cannot contain \' " $ & < >.', 'error');
+            return;
+        }
+
+        if (!$('#emailList').val() && !$('#SMSList').val()) {
+            Page.alert('Error', 'You must enter at least one email address or SMS number.', 'error');
+            return false;
+        }
+
+        if ($("input[name='delayOptions']:checked").val() == 'select' && !$('#alertDelay').val()) {
+            Page.alert('Error', 'You must enter delay in minutes.', 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    function submitForm() {
+
+        if (!validateForm()) {
+            return;
+        }
+
+        var formData = {
+            name: $('#name').val(),
+            emailList: $('#emailList').val(),
+            SMSList: $('#SMSList').val(),
+            alertDelay: $('#alertDelay').val(),
+            delayOption: $("input[name='delayOptions']:checked").val()
+        };
+
+        var verb = 'POST';
+
+        if ($('#id').val()) {
+            //  edit item
+            verb = 'PUT';
+            formData.id = +$('#id').val();
+        }
+
+        $.ajax({
+            type: verb,
+            url: '/contacts/',
+            data: formData,
+            success: function (data, status) {
+                dataTable.ajax.reload(function() {
+                    $('#modal-create').modal('hide');
+                }, false);
+            },
+            error: function (request, status, error) {
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+
+        //  set focus upon modal launch
+        $('#modal-create').on('shown.bs.modal', function () {
+            $('#name').focus();
+        });
+
+        var $emailList = $('#emailList').selectize({
+            delimiter: ',',
+            plugins: ['remove_button'],
+            persist: false,
+            createOnBlur: true,
+            create: true,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+
+        var $SMSList = $('#SMSList').selectize({
+            delimiter: ',',
+            plugins: ['remove_button'],
+            persist: false,
+            createOnBlur: true,
+            create: true,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+
+        emailList = $emailList[0].selectize;
+        SMSList = $SMSList[0].selectize;
+
+        $('#help-minutes').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "When a monitor is down, wait for this many minutes of downtime before sending an alert to this contact." +
+            "<br><br>This can be used to create escalating alerts or to avoid alerts during short periods of downtime, like reboots." +
+            "<br><br>Enter 0 or leave blank for immediate alerts."
+        });
+
+        $('#help-email-list').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter one or more email addresses.  In the event of an alert, a notification will be sent to each email address."
+        });
+
+        $('#help-sms-list').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter one or more SMS numbers.  Non-U.S. numbers must enter a country code.  In the event of an alert, a notification will be sent to each number."
+        });
+
+        populateTable();
+        toggleDelay();
+    });
+</script>

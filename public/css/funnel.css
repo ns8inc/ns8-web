@@ -1,0 +1,95 @@
+/*  CSS for the funnel page  */
+
+#filter-builder .rules-group-container {
+    background-color:white !important;
+    border:none !important;
+    padding:0 !important;
+}
+
+.twitter-typeahead, .tt-hint, .tt-input, .tt-menu { width: 100%; }
+
+.funnel-bar-container {
+    margin-top:15px;
+    height:235px;
+    position:relative;
+}
+.funnel-bar-positioner {
+    position:absolute;
+    bottom:0;
+    width:100%;
+}
+.funnel-step {
+    height:290px;
+}
+.funnel-arrow-container {
+    position:relative;
+    top:-95px;
+    left:-40px;
+    width: 70px;
+    text-align:center
+}
+.funnel-arrow {
+    font-size: 44px
+}
+.funnel-arrow-text {
+    font-size: 16px
+}
+.funnel-button {
+    width: 100px;
+    margin:auto;
+    white-space: normal;
+}
+.funnel-title {
+    font-size:18px;
+    text-align:center;
+    width:100%;
+}
+.funnel-bar {
+    margin-left:auto;
+    margin-right:auto;
+    width:30%;
+    max-width:90px;
+    background: #0080a2 !important;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+.funnel-bar:hover {
+    background: #006082 !important;;
+}
+.funnel-bar-active {
+    background: #006082 !important;;
+}
+.funnel-bar-inactive {
+    background: #0080a2 !important;;
+}
+.funnel-search {
+    position: relative;
+    font-size: 18px;
+    padding-top: 25px;
+    margin: -20px auto 0;
+}
+.funnel-search label {
+    position: absolute;
+    left: 17px;
+    top: 41px;
+}
+.funnel-search .funnel-search-input,
+.funnel-search .hint {
+    padding-left: 16px;
+    padding-right: 33px;
+    border-radius: 23px;
+    border-color: rgb(204, 204, 204)
+}
+.funnel-search .hint {
+    color: #aaa;
+}
+.funnel-search .funnel-search-clear {
+    text-decoration: none;
+    position: absolute;
+    right: 12px;
+    top: 33px;
+    color: #939393;
+}
+.funnel-search .funnel-search-clear:hover {
+    color: #6f6f6f;
+}

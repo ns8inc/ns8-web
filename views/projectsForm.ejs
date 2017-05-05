@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+<script>
+    var dataObj = null;
+    <%
+        //  If editing, set segment variable to edit
+        if (dataObj) {
+    %>
+    <%- 'dataObj = ' + JSON.stringify(dataObj) + ';' %>
+    <%  }  %>
+</script>
+
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row white-bg">
+                <% include partials/master/message %>
+
+                <div class="col-lg-12">
+                    <h1 id="title"></h1>
+                    An account can have unlimited projects, each with its own data.  Projects can be shared with other users.
+                    <br /><br />
+
+                    <% if (newUser) { %>
+                    <div class="alert alert-info text-lg" role="alert">
+                        <h3>New Users</h3>
+                        The first step to getting your account active is to create your first project.  Enter a project name and type below and press 'Create':<br>
+                    </div>
+                    <% } %>
+                    <form role="form">
+                        <div class="form-group"><label>Project Name</label>
+                            <input name="projectName" id="projectName" placeholder="Enter new project name..." class="form-control" autocomplete="off">
+                        </div>
+                        <div class="form-group hidden"><label>Project Type</label>
+                            <br>Pick a project type.  This determines how menus and other user interface elements are displayed.  This can be changed at any time.
+                            <br><br><input name="projectType" type="radio" value="0" checked>&nbsp; <label>DMP</label>
+                        </div>
+                        <div>
+                            <button onclick="submitForm(); return false" class="btn btn-md btn-primary" type="submit"><span id="projectSubmit">Create</span></button>
+                            <br><br><br><br><br><br><br>
+                        </div>
+                    </form>
+                    <br /><br />
+                </div>
+            </div>
+        </div>
+
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+
+<script>
+    function setFormData() {
+
+        if (dataObj && dataObj.name) {
+            $('#title').html('Edit Project');
+            $('#projectName').val(dataObj.name);
+            $('input:radio[name=projectType]').val([dataObj.type]);
+            $('#projectSubmit').html('Update');
+        } else {
+            $('#title').html('Create New Project');
+        }
+    }
+
+    function getFormData() {
+        var params = {
+            name: $('#projectName').val(),
+            type: +$('input[name=projectType]:checked').val()
+        };
+
+        if (dataObj)
+            params.id = dataObj.id;
+
+        return params;
+    }
+
+    function submitForm() {
+
+        var val = $('#projectName').val();
+
+        if (!val) {
+            Page.showMessage('You must enter a name for the project.')
+            return;
+        }
+
+        if (val.indexOf('\'') > -1 || val.indexOf('"') > -1 || val.indexOf('&') > -1 || val.indexOf('<') > -1 || val.indexOf('>') > -1) {
+            Page.alert('Error', 'Project names cannot contain \' " & < >.', 'error');
+            return false;
+        }
+
+        //  validation passed, update the data
+        Data.submitForm('/setup/projects/', getFormData(), function() {
+
+            if (dataObj)
+                window.location = '/setup/projects'
+            else
+                window.location = '/setup/projects?new=1'
+        });
+    }
+
+    $(document).ready(function() {
+
+        //  set up form based on whether a new item or editing an existing item
+        setFormData();
+    });
+</script>
+</body>
+</html>

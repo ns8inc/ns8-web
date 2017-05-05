@@ -1,0 +1,100 @@
+<script src="/js/switchery.min.js"></script>
+
+<script>
+    var dataTable;
+
+    function populateTable() {
+
+        /*  Create an array with the values of all the checkboxes in a column - this is used to sort on checkbox values   */
+        $.fn.dataTable.ext.order['dom-checkbox'] = function  ( settings, col )
+        {
+            return this.api().column( col, {order:'index'} ).nodes().map( function ( td, i ) {
+                return $('input', td).prop('checked') ? '1' : '0';
+            } );
+        }
+
+        var options = {
+            ajax: "/stations/data",
+            order: [[ 1, "asc" ]],
+            paging: false,
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function (data, type, row) {
+                        return '<input onchange="setState(' + row.id + '); return false;" type="checkbox" id="enabled-' + row.id + '"' + (!row.disabled ? ' checked' : '') + '>';
+                    },
+                    orderDataType: "dom-checkbox"
+                },
+                {
+                    targets: 1,
+                    data: "description"
+                },
+                {
+                    targets: 2,
+                    data: "url"
+                },
+                {
+                    targets: 3,
+                    data: "country"
+                }
+            ]
+        };
+
+        dataTable = $('#tableElement').DataTable(options);
+
+        dataTable.on('draw.dt', function ( e, settings, json) {
+            var data = getData();
+
+            for (var r = 0; r < data.length; r++) {
+                var elem = document.querySelector('#enabled-' + data[r].id);
+
+                //  undrawn elements will not be here
+                if (elem) {
+
+                    if (!$('#enabled-' + data[r].id).prop('switcheried')) {
+                        $('#enabled-' + data[r].id).prop('switcheried', true);        //  add prop to indicate already setup
+                        var switchery = new Switchery(elem, { color: '#1cb14f', size: 'small' });
+                    }
+                }
+            }
+        });
+    }
+
+    function getData() {
+        var json = dataTable.ajax.json();
+
+        if (json)
+            return json.data
+        else
+            return [];
+    }
+
+    function find(id) {
+        var data = getData();
+        for (var c = 0; c < data.length; c++)
+            if (data[c].id == id)
+                return data[c];
+    }
+
+    function setState(id) {
+        var url, station = find(id);
+
+        if ($('#enabled-' + station.id).is(':checked')) {
+            url = '/stations/enable/' + station.id;
+        } else {
+            url = '/stations/disable/' + station.id;
+        }
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            error: function (request, status, error) {
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        populateTable();
+    });
+</script>

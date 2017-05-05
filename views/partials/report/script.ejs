@@ -1,0 +1,446 @@
+<script src="/query-builder/js/query-builder.standalone.min.js"></script>
+<script src="/js/query-builder.custom.js"></script>
+<script src="/typeahead/typeahead.jquery.min.js"></script>
+<script type="text/javascript" src="/js/yaml.min.js"></script>
+
+<script>
+
+    //  set the timezone to the user's timezone
+    moment.tz.setDefault('<%- req.session.user.timezone ? req.session.user.timezone.momentName : 'UTC' %>');
+
+    var report = new Report();
+    report.settings = <%- JSON.stringify(definition.settings) %>;       //  set static setting from report definition
+    report.state = <%- JSON.stringify(definition.initialState) %>;      //  set initial state from options
+
+    var segmentsSelectize, customCount = 0, customSegments, suppressUpdates = false, title;
+
+    $('#page-title').html(report.settings.title);
+
+    var metricSelectize = $('#metrics').selectize({
+        options: <%- JSON.stringify(metricOptions) %>,
+        items: Utils.replaceAll(report.state.attributes, ' ', '').split(','),
+        plugins: ['drag_drop','remove_button'],
+        delimiter: ',',
+        closeAfterSelect: true,
+        onItemAdd: function () {
+            this.blur();
+        },
+        optgroups:[{ id: 'Custom', name: 'Custom Attributes' }, { id: 'Standard', name: 'Standard Attributes' }],
+        optgroupField: 'optgroup',
+        optgroupLabelField: 'name',
+        optgroupValueField: 'id'
+    });
+
+    var elementSelectize = $('#elements').selectize({
+        options: <%- JSON.stringify(elementOptions) %>,
+        items: report.state.group ? Utils.replaceAll(report.state.group, ' ', '').split(',') : [],
+        plugins: ['drag_drop','remove_button'],
+        delimiter: ',',
+        closeAfterSelect: true,
+        onItemAdd: function () {
+            this.blur();
+        },
+        optgroups:[{ id: 'Custom', name: 'Custom Attributes' }, { id: 'Standard', name: 'Standard Attributes' }],
+        optgroupField: 'optgroup',
+        optgroupLabelField: 'name',
+        optgroupValueField: 'id'
+    });
+
+    function setupSegmentSelect(items) {
+
+        var segments = <%- JSON.stringify(segmentOptions) %>;
+
+        segmentsSelectize = $('#segments').selectize({
+            options: segments,
+            items: items,
+            maxItems: 6,
+            plugins: ['drag_drop','remove_button'],
+            delimiter: ',',
+            closeAfterSelect: true,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+    }
+
+    setupSegmentSelect([ -1000 ]);
+
+    function newSegment() {
+        $('#segment-builder').queryBuilder('reset');
+        $('#segmentName').val('Custom ' + ++customCount);
+    }
+
+    function editSegment(value) {
+
+        if (value && value.substr(0, 6) == 'custom') {
+            $('#segmentName').val(customSegments[value].text);
+            $('#segmentModal').modal('show');
+            $('#segment-builder').queryBuilder('setRulesFromMongo', customSegments[value].query);
+        }
+    }
+
+    function addSegment() {
+
+        //  validate form data
+        if (!$('#segment-builder').queryBuilder('validate'))
+            return;
+
+        customSegments = customSegments || {};
+
+        var value = 'custom-' + customCount;
+        customSegments[value] = {
+            text: $('#segmentName').val(),
+            query: $('#segment-builder').queryBuilder('getMongo')
+        };
+
+        segmentsSelectize[0].selectize.addOption({ value: value, text: $('#segmentName').val() });
+        segmentsSelectize[0].selectize.updateOption(value, { value: value, text: customSegments[value].text });
+        segmentsSelectize[0].selectize.refreshItems();
+        segmentsSelectize[0].selectize.addItem(value);
+        $('#segmentModal').modal('hide');
+        runQuery();
+    }
+
+    function runQuery() {
+
+        if (suppressUpdates)
+            return;
+
+        if (!Filter.validate('filter-builder'))
+            return;
+
+        if (!$('#projects').val()) {
+            Page.showMessage('Please select a project.&nbsp; <a href="/setup/projects/form">Click here</a> to create a new project.');
+            return;
+        }
+
+        if (!$('#metrics').val()) {
+            Page.showMessage('You must select at least one metric to report on.');
+        } else {
+
+            //  set page options for both chart and table
+            report.pageOptions = {
+                projectId: $('#projects').val(),
+                chartContainer: 'results-chart',
+                tableContainer: 'results-table',
+                legendContainer: 'results-legend',
+                onStateChange: pushState
+            }
+
+            setState();
+
+            report.run(function(err) {
+
+                if (!err)
+                    pushState();
+                else
+                    Page.doneLoading();
+
+                //  if being exported, notify service that rendering is done
+                if (typeof window.callPhantom === 'function')
+                    window.callPhantom({ status: 'complete' });
+
+                //  custom report views can attach a function for processing after a report is rendered
+                if (typeof window.afterRenderHook === 'function')
+                    window.afterRenderHook(report, err);
+
+            });
+        }
+    }
+
+    var firstPush = true;
+
+    function pushState() {
+        if (history.pushState) {
+
+            if (firstPush)
+                history.replaceState( { reportState: report.state, reportSettings: report.settings, tableData: report.tableData, chartData: report.chartData }, '',
+                    window.location.href.split('?')[0] + '?options=' + encodeURIComponent(JSON.stringify(report.state)));
+            else
+                history.pushState( { reportState: report.state, reportSettings: report.settings, tableData: report.tableData, chartData: report.chartData }, '',
+                    window.location.href.split('?')[0] + '?options=' + encodeURIComponent(JSON.stringify(report.state)));
+
+            firstPush = false;
+        }
+    }
+
+    window.onpopstate = function(settings) {
+
+        if (settings && settings.state) {
+            report.settings = settings.state.reportSettings;
+            restoreState(settings.state.reportState);
+            report.tableData = settings.state.tableData;
+            report.chartData = settings.state.chartData;
+            report.render();
+        }
+    };
+
+    //  set the report state from the page elements
+    function setState() {
+        report.state.dateLabel = Toolbar.dateLabel;
+        report.state.dateInterval = $("#reportIntervalTitle").html();
+        report.state.attributes = $("#metrics").val();
+
+        if ($("#elements").val())
+            report.state.group = $("#elements").val();
+        else
+            delete report.state.group;
+
+        if ($("#segments").val())
+            report.state.segments = $("#segments").val();
+        else
+            delete report.state.segments;
+
+        if ($("#filter-builder").queryBuilder('validate'))
+            report.state.filter = $("#filter-builder").queryBuilder('getMongo');
+        else
+            delete report.state.filter;
+
+        if (customCount >0) {
+            report.state.customSegments = customSegments;
+            report.state.customCount = customCount;
+        } else {
+            delete report.state.customSegments;
+            delete report.state.customCount;
+        }
+
+        if (Toolbar.dateLabel == 'Custom' || Toolbar.customRanges[Toolbar.dateLabel]) {
+            report.state.dateStart = Toolbar.dateStart;
+            report.state.dateEnd = Toolbar.dateEnd;
+        } else {
+            delete report.state.dateStart;
+            delete report.state.dateEnd;
+        }
+
+        if (!report.state.plotKeys)
+            delete report.state.plotKeys;
+
+        if (!report.state.tableOrder)
+            delete report.state.tableOrder;
+    }
+
+    //  restore the report state from the history state object
+    function restoreState(state) {
+
+        suppressUpdates = true;
+
+        report.state = state;
+
+        if (state.filter && Object.keys(state.filter).length > 0)
+            Filter.setRules('filter-builder', state.filter);
+        else
+            Filter.reset('filter-builder');
+
+        if (report.settings.title)
+            $('#page-title').html(report.settings.title);
+
+        Toolbar.setValues(state.dateLabel, state.dateStart, state.dateEnd, state.dateInterval);
+        Toolbar.draw();
+
+        metricSelectize[0].selectize.clear();
+        state.attributes.split(',').forEach(function(item) {metricSelectize[0].selectize.addItem(item.trim());});
+
+        elementSelectize[0].selectize.clear();
+
+        if (state.group)
+            state.group.split(',').forEach(function(item) {elementSelectize[0].selectize.addItem(item.trim());});
+
+        segmentsSelectize[0].selectize.clear();
+
+        if (state.segments)
+            state.segments.split(',').forEach(function(item) {segmentsSelectize[0].selectize.addItem(item.trim());});
+
+        if (state.customSegments) {
+            customSegments = state.customSegments;
+
+            for (var key in customSegments) {
+
+                if (customSegments.hasOwnProperty(key)) {
+                    var segment = customSegments[key];
+                    segmentsSelectize[0].selectize.addOption({ value: key, text: segment.text });
+                    segmentsSelectize[0].selectize.addItem(key);
+                }
+            }
+        }
+
+        if (state.customCount)
+            customCount = state.customCount;
+
+        suppressUpdates = false;
+    }
+
+    var filterOptions = <%- JSON.stringify(filterOptions) %>;
+
+    Page.intro = {
+        steps: []
+    };
+
+    $(document).ready(function() {
+
+        try {
+            suppressUpdates = true;
+
+            Toolbar.init(report);
+
+            Filter.init('filter-builder', report.settings.appId || 0, report.state.projectId || <%- req.session.currentProjectId || 0 %>, null, filterOptions);
+            Filter.init('segment-builder', report.settings.appId || 0, report.state.projectId || <%- req.session.currentProjectId || 0 %>, null, filterOptions);
+
+            //  'filter-builder' is part of the page and can cause updates
+            Filter.configureEmbeddedFilter('filter-builder');
+
+            if (report.state) {
+                restoreState(report.state);
+            } else {
+                setState();     //  set defaults
+            }
+            suppressUpdates = false;
+
+            runQuery();
+
+            $('body').on('click', 'div.items', function (e) {
+                editSegment($(e.target).attr('data-value'));
+            });
+
+            Page.intro.steps.push({
+                intro: "This is a tour of a report page.  It will guide you through the elements on the page and what they are for.  <br><br>Click 'next' to start."
+            });
+
+            if ($('#filter-builder').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#filter-builder'),
+                    intro: "This is used to filter all the data on the report.  Multiple filters can be created and grouped together by logical ANDs and ORs."
+                });
+
+                Page.intro.steps.push({
+                    element: document.querySelector('.group-actions'),
+                    intro: "Create multiple filter criteria by adding and grouping rules."
+                });
+
+                Page.intro.steps.push({
+                    element: document.querySelector('.group-conditions'),
+                    intro: "When you have multiple filter criteria, you can choose whether to logically AND them or OR them."
+                });
+            }
+
+            if (report.settings.segments) {
+                Page.intro.steps.push({
+                    element: document.querySelector('#segments + div'),
+                    intro: "Segments are used to compare subsets of data on the report.  For example, you may want to compare mobile sessions vs. tablet sessions.  By selecting a segment, it will be added side by side to the table and chart below."
+                });
+            }
+
+            if ($('#toolbar-prior').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-prior'),
+                    intro: "By clicking on this, the report will change the timeframe one unit back.  For example, if the report is for the month of June, it will move to May and refresh."
+                });
+            }
+
+            if ($('#reportRange').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#reportRange'),
+                    intro: "This lets you pick predefined timeframes, like 'Today', or 'Last 7 days'.  It also lets you select custom timeframes from the 'Custom' menu option."
+                });
+            }
+
+            if ($('#toolbar-next').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-next'),
+                    intro: "By clicking on this, the report will change the timeframe one unit forward.  For example, if the report is for the month of May, it will move to June and refresh."
+                });
+            }
+
+            if ($('#toolbar-interval').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-interval'),
+                    intro: "This defines the time interval the report will be grouped on.  For example, hourly, daily or monthly.  " +
+                    "If the timeframe and interval match (like 'today' and 'daily'), the report will show a snapshot of the data using pie charts.  Otherwise, the report will show a trend line.",
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-refresh').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-refresh'),
+                    intro: "This button refreshes the report without reloading the whole page.",
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-dashboard').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-dashboard'),
+                    intro: "This adds the current report to an existing dashboard.  The report will show up as a pod on the dashboard you select.",
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-bookmark').is(':visible')) {
+
+                if (report.settings.bookmarks) {
+                    Page.intro.steps.push({
+                        element: document.querySelector('#toolbar-bookmark'),
+                        intro: "This creates a bookmark for the current report.  The bookmark will show up on the menu's 'Bookmark' item.",
+                        position: 'left'
+                    });
+                }
+            }
+
+            if ($('#toolbar-columns').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-columns'),
+                    intro: 'This shows a dialog that allows you to:<br>' +
+                    '<ul><li>Customize what columns to display on the table.  You can reorder the columns by dragging and dropping them.</li>' +
+                    '<li>Choose what to group the report on.</li></ul>',
+                    position: 'left'
+                });
+            }
+
+            if ($('#toolbar-export').is(':visible')) {
+
+                Page.intro.steps.push({
+                    element: document.querySelector('#toolbar-export'),
+                    intro: "This exports the report to a specific format you select, like PDF or CSV.",
+                    position: 'left'
+                });
+            }
+
+            /*
+             Page.intro = {
+             steps: [
+             {
+             element: document.querySelector('#metrics + div'),
+             intro: "These are metrics to display on the table below, which are numeric attributes that can have summary operations computed on, like totals, averages, etc. For example, 'Average Session Length'." +
+             "<br><br>You can drag and drop the metrics to customize the order in which they are displayed.  Also, you can click on the 'x' to remove them."
+             },
+             {
+             element: document.querySelector('#elements + div'),
+             intro: "These are attributes (generally a string or date) that reports can be grouped on. For example, 'Event Name' or 'Campaign'.  The table below will show grouping based on what you have selected here." +
+             "<br><br>You can drag and drop the elements to customize the order in which they are displayed.  Also, you can click on the 'x' to remove them."
+             },
+             ]
+             };
+             */
+        } catch(err) {
+            Page.showMessage(err.message);
+        }
+    });
+
+    <% if (!req || !req.query || req.query.format != 'pdf') { %>
+    if (!localStorage.reportIntroPlayed)
+        Page.confirm('Take a tour?', 'Would you like a guided tour of this page?', function() {
+            Page.startIntro();
+        });
+
+    localStorage.reportIntroPlayed = true;
+    <% } %>
+
+</script>

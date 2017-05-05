@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/master/header %>
+    <link rel="stylesheet" href="/jvectormap/jquery-jvectormap-2.0.4.css" type="text/css" media="screen"/>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <div class="row white-bg">
+
+                <% include partials/master/message %>
+                <div class="col-md-6">
+                    <h1>Person Profile</h1>
+                    <br />
+                    <form role="form" method="get">
+                        <div class="form-group"><label>Person</label> <input name="person" type="text" placeholder="Enter person" class="form-control" value="<%= params ? params.personId : "" %>"></div>
+                        <div class="form-group"><label>Days to Search</label> <input name="days" type="text" placeholder="Enter days to search..." class="form-control" value="<%= params ? params.days : "" %>"></div>
+                        <div>
+                            <button class="btn btn-sm btn-primary m-t-n-xs" type="submit"><strong>Lookup</strong></button>
+                            <br><br>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-md-6">
+                    <h1>Person Data</h1>
+                    <div id="personForm"></div>
+                </div>
+            </div>
+
+            <% if (summary) { %>
+            <br>
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <span class="label label-info pull-right">Last <%= params ? params.days : "30" %> Days</span>
+                            <h3>Sessions</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.sessions %></h1>
+                        </div>
+                    </div>
+                </div>
+
+                <% if (summary.pageViews) { %>
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Page Views</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.pageViews %></h1>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (summary.bounces) { %>
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Bounces</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.bounces %></h1>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Events</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.eventCount %></h1>
+                        </div>
+                    </div>
+                </div>
+
+                <% if (summary.purchases) { %>
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Purchases</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.purchases %></h1>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Revenue</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.revenue %></h1>
+                        </div>
+                    </div>
+                </div>
+
+                <% if (summary.itemQuantity) { %>
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Item Quantity</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.itemQuantity %></h1>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (summary.shipping) { %>
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Shipping</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.shipping %></h1>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (summary.tax) { %>
+                <div class="col-md-2">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h3>Tax</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <h1 class="no-margins"><%- summary.tax %></h1>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <span class="label label-info pull-right">Latest</span>
+                            <h3>Sessions</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table">
+                                <tr>
+                                    <th>Session Time</th>
+                                    <th>Campaign</th>
+                                    <th>Referrer</th>
+                                    <th>Events</th>
+                                </tr>
+                                <%  if (sessions) {
+                                for (var s = 0; s < sessions.length; s++) {
+                                %>
+                                <tr>
+                                    <td><%- sessions[s].sessionDateTime %></td>
+                                    <td><%- sessions[s].currentCampaign || 'None' %></td>
+                                    <td><%- sessions[s].referrer %></td>
+                                    <td><%- sessions[s].events %></td>
+                                </tr>
+                                <%
+                                }
+                                %>
+                                <% } %>%>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <% if (latestSession) { %>
+                <div class="col-md-6">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <span class="label label-info pull-right">Last Session</span>
+                            <h3>Client</h3>
+                        </div>
+                        <div class="ibox-content">
+                            <table class="table">
+                                <tr>
+                                    <td>
+                                        Location
+                                    </td>
+                                    <td>
+                                        <!-- map goes here -->
+                                        <div id="world-map" style="width:100%; height: 80px; margin-top: 5px"></div>
+                                    </td>
+                                </tr>
+
+                                <% if (latestSession.organization) { %>
+                                <tr><td>Organization</td><td><%- latestSession.organization %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.country) { %>
+                                <tr><td>Country</td><td><%- latestSession.country %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.region) { %>
+                                <tr><td>Region</td><td><%- latestSession.region %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.city) { %>
+                                <tr><td>City</td><td><%- latestSession.city %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.postalCode) { %>
+                                <tr><td>Postal Code</td><td><%- latestSession.postalCode %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.browserVersion && latestSession.browserVersion != 'Unknown') { %>
+                                <tr><td>Browser</td><td><%- latestSession.browserVersion %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.platformVersion && latestSession.platformVersion != 'Unknown') { %>
+                                <tr><td>Platform</td><td><%- latestSession.platformVersion %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.deviceType) { %>
+                                <tr><td>Device Type</td><td><%- latestSession.deviceType %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.device) { %>
+                                <tr><td>Device</td><td><%- latestSession.device %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.medianHouseholdIncome) { %>
+                                <tr><td>Median Household Income</td><td><%- latestSession.medianHouseholdIncome %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.avgHomeValue) { %>
+                                <tr><td>Avg. Home Value</td><td><%- latestSession.avgHomeValue %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.resolution) { %>
+                                <tr><td>Screen Resolution</td><td><%- latestSession.resolution %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.ipAddress) { %>
+                                <tr><td>I.P. Address</td><td><%- latestSession.ipAddress %></td></tr>
+                                <% } %>%>
+
+                                <% if (latestSession.cookieSupport) { %>
+                                <tr><td>Cookie Support</td><td><%- latestSession.cookieSupport %></td></tr>
+                                <% } %>%>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+
+            <% } %>
+        </div>
+
+        <% include partials/master/footer %>
+    </div>
+</div>
+<% include partials/master/footerScripts %>
+<script src="/jvectormap/jquery-jvectormap-2.0.4.min.js"></script>
+<script src="/jvectormap/jquery-jvectormap-world-mill.js"></script>
+<script type="text/javascript" src="/js/yaml.min.js"></script>
+
+<script>
+    var latestSession = <%- JSON.stringify(latestSession) %> || {};
+
+    $(document).ready(function() {
+
+        var markers = [];
+
+        if (latestSession.longitude && latestSession.latitude) {
+            var tooltip = latestSession.country;
+            markers.push({name: 'point', latLng: [latestSession.latitude, latestSession.longitude], tooltip: tooltip });
+        }
+
+        $('#world-map').vectorMap({
+            map: 'world_mill',
+            markers: markers,
+            zoomButtons : false,
+            markerStyle: {
+                initial: {
+                    image: '/images/marker.png'
+                }
+            },
+            backgroundColor: 'none',
+            regionStyle: {
+                initial: {
+                    fill: '#1cb14f',
+                    "fill-opacity": 1,
+                    stroke: 'none',
+                    "stroke-width": 0,
+                    "stroke-opacity": 1
+                }
+            }
+        });
+
+        loadForm();
+    });
+
+    var form, person = '<%= params ? params.personId : "" %>', personData = <%- personData ? JSON.stringify(personData) : '{}' %>;
+
+    function loadForm() {
+
+        if (Object.keys(personData).length == 0)
+            $('#personForm').html('None assigned');
+        else
+            $('#personForm').html('<pre>' + YAML.stringify(personData) + '</pre>');
+        //JSONForm(personData, 'personForm');
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <div class="row white-bg">
+
+                <% include partials/master/message %>
+
+                <div class="col-lg-12">
+                    <h1>Scheduled Reports</h1>
+                    To create a scheduled report, configure and run any report in the application and click on the email icon:&nbsp;&nbsp; <i class="fa fa-envelope-o" style="font-size: 14px"></i>
+                    <br /><br /><br />
+                    <div id="data-table">
+                        <table id="dataTable" class="table table-striped table-bordered table-hover order-column dataTable"></table>
+                    </div>
+                    <br /><br /><br /><br /><br /><br />
+                </div>
+            </div>
+        </div>
+
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+<script>
+
+
+    var sReports = <%- JSON.stringify(scheduledReports) %>;
+
+
+
+    function setupScheduledReportTable() {
+        $('#dataTable').DataTable({
+                    data: sReports,
+                    columns: [
+                        {title: "Name"},
+                        {title: "Recipients"},
+                        {title: "Frequency"},
+                        {title: "Attachment"},
+                        {title: "Action"}
+                    ],
+                    columnDefs : [
+                        {
+                            "targets": 0,
+                            "data":  "name",
+                            "render": function (data, type, row, meta) {
+
+                                var rstring =  "<a href='" + decodeURIComponent(row["query"]) + "'>" +  data  + "</a>";
+                                rstring += "<br/><small>" + row["description"] +  "</small>";
+
+                                return rstring;
+                            }
+                        },
+                        {
+                            "targets" : 1,
+                            "data" : "recipients",
+                            "render": function (data, type, row, meta) {
+                                return data;
+                            }
+                        },
+                        {
+                            "targets" : 2,
+                            "data" : "recurrenceText",
+                            "render": function (data, type, row, meta) {
+                                var fstring = row['recurrenceText'] + "<br/>";
+                                fstring += row['frequencyText']
+                                return fstring;
+                            }
+                        },
+                        {
+                            "targets" : 3,
+                            "data" : "attachmentFormatText",
+                            "render": function (data, type, row, meta) {
+                                return data;
+                            }
+                        },
+                        {
+                            "targets" : 4,
+                            "data" : "_id",
+                            "render": function (data, type, row, meta) {
+                                return "<a href='/setup/scheduledReport/" + data + "' onclick='confirmDelete(" + data + "); return false;'><i class='fa fa-remove fa-lg icon-remove icon-large' style='font-weight:bold;color:red;' title='Delete'></i></a>";
+                            }
+                        }
+                    ]
+                }
+        );
+    }
+
+    function confirmDelete(id)
+    {
+        Page.confirm('Delete Scheduled Report','Are you sure you want to remove this scheduled Report?', function(){
+            Data.delete('/setup/scheduledReports/' + id,function(){
+                location.reload();
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        setupScheduledReportTable()
+
+        $('#scheduledReport-name').focus(function() {
+            $('#scheduledReport-name').removeClass('has-error');
+        });
+    });
+</script>
+</body>
+</html>

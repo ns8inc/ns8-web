@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>Tracking Events</h1>
+
+                    An <b>event</b> is an occurance on a website or app that you wish to track, like signups, or purchases.&nbsp; Tracking events provides data to see
+                    how visitors navigate your site or app.&nbsp; Tracking events is easy.&nbsp; You simply add a call for each event.
+
+                    <br /><br /><h2>Tracking an event on a website</h2>
+                    Add the following JavaScript code anywhere on your page:
+                    <br /><br />
+                    <pre><%- application.branding.scriptName %>.logEvent(<i>eventName</i>, <i>[ data ]</i>);</pre>
+
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>eventName</code></td><td>The name of the event you wish to track, like 'Contact Entered', or 'Order'.</td></tr>
+                        <tr><td><code>data</code></td><td>(optional) Event data to attach to the event.&nbsp; This data will be available on reports throughout the system.&nbsp; It is passed in as an
+                                JavaScript object literal.</td></tr>
+                    </table>
+
+                    <br /><h3>Examples:</h3>
+                    <br />
+                    <pre><%- application.branding.scriptName %>.logEvent('Signup');</pre>
+                    <br />
+                    or if you want to add data to the event, use this example call instead:
+                    <br /><br />
+                    <pre><%- application.branding.scriptName %>.logEvent('Signup', { firstName: 'Jerry', lastName: 'Smith' } );</pre>
+
+                    <br /><br /><h3>Ecommerce:</h3>
+                    If you are tracking ecommerce events, like purchases, see our section on <a href="/developer/web/ecommerce">ecommerce</a>.
+
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

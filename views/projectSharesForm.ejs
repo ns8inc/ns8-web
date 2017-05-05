@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/master/header %>
+</head>
+<body class="fixed-navigation">
+<script>
+    var dataObj = null;
+    <%
+        //  If editing, set segment variable to edit
+        if (dataObj) {
+    %>
+    <%- 'dataObj = ' + JSON.stringify(dataObj) + ';' %>
+    <%  }  %>
+</script>
+
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row white-bg">
+                <% include partials/master/message %>
+
+                <div class="col-lg-6">
+                    <h1 id="title"></h1>
+                    Share a project with another user.
+                    <br /><br />
+
+                    <form role="form">
+                        <div class="form-group"><label>User email address to share project with</label>
+                            <input name="userName" id="userName" placeholder="Enter email address..." class="form-control" autocomplete="off">
+                        </div>
+                        <div class="form-group"><label>Permissions for user</label>
+                            <select name="permissions" id="permissions" class="form-control">
+                                <option value="read"><label>Read</label> - The allows the user to view reports.</option>
+                                <option value="manage"><label>Manage</label> - The allows the user to view reports and manage the project settings.</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button onclick="submitForm(); return false" class="btn btn-sm btn-primary m-t-n-xs" type="submit"><strong id="shareSubmit">Create</strong></button>
+                            <br><br><br><br><br><br><br>
+                        </div>
+                    </form>
+                    <br /><br />
+                </div>
+            </div>
+        </div>
+
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+
+<script>
+    function setFormData() {
+
+        if (dataObj) {
+            $('#title').html('Edit Share for Project <%- project.name %>');
+            $('#userName').val(dataObj.userName);
+            $('#permissions').val(dataObj.permissions);
+            $('#shareSubmit').html('Update');
+        } else {
+            $('#title').html('Create New Share for Project <%- project.name %>');
+        }
+    }
+
+    function getFormData() {
+        var params = {
+            userName: $('#userName').val(),
+            permissions: $('#permissions').val(),
+            projectId: <%- project.id %>
+        };
+
+        return params;
+    }
+
+    function submitForm() {
+
+        var val = $('#userName').val();
+
+        if (!val) {
+            Page.showMessage('You must enter a user email address.')
+            return;
+        }
+
+        //  validation passed, update the data
+        Data.submitForm('/setup/projectshares', getFormData(), function() {
+            window.location = '/setup/projectshares?projectId=<%-project.id%>'
+        });
+    }
+
+    $(document).ready(function() {
+
+        //  set up form based on whether a new item or editing an existing item
+        setFormData();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<script src="/jvectormap/jquery-jvectormap-2.0.4.min.js"></script>
+<script src="/jvectormap/jquery-jvectormap-world-mill.js"></script>
+
+<script>
+
+    var dashboard = <%- JSON.stringify(dashboard) %>;
+    var podTemplate = '';
+
+    function jump(p) {
+        window.location = '/report?options=' + encodeURIComponent(JSON.stringify(JSON.parse(dashboard.pods[p]).state));
+    }
+
+    function deletePod(p) {
+
+        Page.confirm('Confirm', 'Do you want to delete this pod?', function() {
+
+            var podNo = $('#pod-' + p).attr('data-order');
+
+            $.ajax({
+                type: 'DELETE',
+                url: '/setup/dashboards/pods',
+                data: {
+                    name: '<%- dashboardName %>',
+                    pod: podNo
+                },
+                success: function (data, status) {
+                    $('#pod-' + p).remove();
+                },
+                error: function (request, status, error) {
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+
+    var reports = [], element;
+
+    $(document).ready(function() {
+
+        if (dashboard.pods.length == 0)
+            Page.showMessage('This dashboard does not have any pods to display.  You can create pods from any report by clicking on the <i class="fa fa-th-large"></i> toolbar icon.');
+
+        //  populate pods
+        for (var p = 0; p < dashboard.pods.length; p++) {
+            var pod = JSON.parse(dashboard.pods[p]);
+
+            reports[p] = new Report();
+
+            reports[p].pageOptions = {
+                style: 'dashboard',
+                projectId: $('#projects').val()
+            }
+
+            reports[p].settings = pod.settings || {};
+            reports[p].state = pod.state;
+
+            switch (pod.display) {
+                case 'table':
+
+                    reports[p].pageOptions.tableContainer = 'pod-contents-' + p;
+                    element =
+                        '<span id="' + reports[p].pageOptions.tableContainer + '-container" style="visibility: hidden">' +
+                        '    <div id="' + reports[p].pageOptions.tableContainer + '">&nbsp;</div>' +
+                        '</span>';
+                    break;
+                case 'chart':
+                    reports[p].pageOptions.chartContainer = 'pod-contents-' + p;
+                    reports[p].pageOptions.legendContainer = 'pod-legend-' + p;
+                    element =
+                        '<div style="padding:0" id="' + reports[p].pageOptions.chartContainer + '-container" class="flot-container">' +
+                        '    <div id="' + reports[p].pageOptions.chartContainer + '" class="flot-placeholder"></div>' +
+                        '</div>' +
+                        '<div id="' + reports[p].pageOptions.legendContainer + '" class="dashboard-legend" style="width:100%;margin-top:10px"></div>';
+                    break;
+                case 'map':
+                    reports[p].pageOptions.mapContainer = 'pod-contents-' + p;
+                    element =
+                        '<div style="padding-left:15px;padding-top:0;width:100%;height:260px" id="' + reports[p].pageOptions.mapContainer + '" >' +
+                        '</div>';
+                    break;
+            }
+
+            <%  if (editable) { %>
+
+            var deleteLink = '<a class="close-link">' +
+                '  <i class="fa fa-times" onclick="deletePod(' + p + ')"></i>' +
+                '</a>';
+            <% } else { %>
+            var deleteLink = '';
+            <% } %>
+
+            $('#pods').append(
+                '<li id="pod-' + p + '" data-order="' + p + '" class="ui-state-default dashboard-pod" ' + (pod.display == 'table' ? 'style="overflow-y:scroll"' : '') + '>' +
+                '<div class="ibox float-e-margins">' +
+                '    <div class="ibox-title">' +
+                '        <h5>' + pod.title + '</h5>' +
+                '        <div class="ibox-tools">' +
+                '            <a class="close-link">' +
+                '                <i class="fa fa-search-plus" onclick="jump(' + p + ')"></i>' +
+                '            </a>' + deleteLink +
+                '        </div>' +
+                '    </div>' +
+                '    <div class="ibox-content" style="margin:0">' +
+                '        <div>' +
+                element +
+                '        </div>' +
+                '    </div>' +
+                '</div>' +
+                '</li>'
+            );
+
+            reports[p].run(function(err) {
+                if (err)
+                    console.error(err.message);
+            });
+        }
+
+        //  make panels sortable
+        $("#pods").sortable({
+            handle: '.ibox-title',
+            update: function (event, ui) {
+
+                var order = [], orders = $("#pods").sortable('serialize').split('&');
+
+                for (var i = 0; i < orders.length; i++) {
+                    order.push(+$('#pod-' + +orders[i].split('=')[1]).attr('data-order'));
+                }
+
+                var data = {
+                    name: '<%- dashboardName %>',
+                    order: order
+                };
+
+                <%  if (editable) { %>
+                $.ajax({
+                    type: 'POST',    //  if the data object has an id, PUT the update
+                    url: '/setup/dashboards/order',
+                    data: data,
+                    success: function() {
+
+                        //  reset order attribute of pods
+                        for (var i = 0; i < orders.length; i++) {
+                            $('#pod-' + +orders[i].split('=')[1]).attr('data-order', i);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        Data.showError(request, status, error);
+                    }
+                });
+                <% } %>
+            }
+        });
+        $( "#dashboard" ).disableSelection();
+    });
+</script>

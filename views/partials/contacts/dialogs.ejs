@@ -1,0 +1,89 @@
+<div class="modal inmodal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <form role="form" id="main-form-modal" class="form-horizontal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h2 class="modal-title" id="modal-title">Create Contact</h2>
+                </div>
+                <div class="modal-body">
+
+                    <input name="id" id="id" type="hidden"/>
+
+                    <div class="form-group">
+                        <label class="col-lg-4 control-label">
+                            <div class="text-left">
+                                Name
+                            </div>
+                        </label>
+                        <div class="col-lg-8">
+                            <input name="name" id="name" class="form-control" required spellcheck="false" />
+                        </div>
+                    </div>
+
+                    <div class="tabs-container">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#tab-10">
+                                    Send alerts to each of the following:
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="tab-10" class="tab-pane active">
+                                <div class="panel-body">
+
+                                    <div class="form-group">
+                                        <label class="col-lg-4 control-label">
+                                            <div class="text-left">
+                                                <i id="help-email-list" class="help-icon fa fa-question-circle pull-left"></i>
+                                                <span>Email(s)</span>
+                                            </div>
+                                        </label>
+                                        <div class="col-lg-8">
+                                            <input name="emailList" id="emailList" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="col-lg-4 control-label">
+                                            <div class="text-left">
+                                                <i id="help-sms-list" class="help-icon fa fa-question-circle pull-left"></i>
+                                                <span>SMS Number(s)</span>
+                                            </div>
+                                        </label>
+                                        <div class="col-lg-8">
+                                            <input name="SMSList" id="SMSList" class="form-control" placeholder="1-555-1212" />
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="form-group">
+                                        <label class="col-lg-4 control-label">
+                                            <div class="text-left" id="minutesLabel">
+                                                <i id="help-minutes" class="help-icon fa fa-question-circle pull-left"></i>
+                                                When to Alert
+                                            </div>
+                                        </label>
+                                        <div class="col-lg-8">
+
+                                            <input onclick="toggleDelay()" type="radio" checked value="immediate" id="delay-immediate" name="delayOptions" /> Immediately
+                                            <br><input onclick="toggleDelay()" type="radio" value="select" id="delay-timeframe" name="delayOptions" /> Select Minutes of Downtime
+
+                                            <div id="delayInputDiv">
+                                                <input type="number" step="any" min="0" name="alertDelay" id="alertDelay" placeholder="Enter minutes of downtime" class="form-control" value="1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button onclick="submitForm(); return false" class="btn btn-primary btn-ok">OK</button>
+                    <input id="contact-create-ok" type="submit" class="hidden">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+            <div class="row white-bg">
+
+                <% include ../partials/master/message %>
+                <div class="col-lg-12">
+                    <h1>Detection</h1>
+                    <h3>Enter user agent and/or I.P. address information to view detected data:</h3>
+                    <br />
+                    <form role="form" method="post">
+                        <div class="form-group"><label>User Agent</label> <input name="ua" type="text" placeholder="Enter user agent" class="form-control" value="<%= params ? params.ua : "" %>"></div>
+                        <div class="form-group"><label>I.P. Address</label> <input name="ip" type="text" placeholder="Enter I.P. address" class="form-control" value="<%= params ? params.ip : "" %>"></div>
+                        <div>
+                            <button class="btn btn-sm btn-primary m-t-n-xs" type="submit"><strong>Detect</strong></button>
+                        </div>
+                    </form>
+                    <br><br>
+                    <%- html ? html + '<br><br>' : '' %>
+                    <h3>High-Volume Detection API</h3>
+                    In addition, high-volume detection is available via our API.  Please <a target="_api" href="https://api.gator.io/v1/docs/analytics/api#!/Analytics/post_analytics_detect">click here to view the API interface for detection</a>.
+                    <br><br><br><br><br><br><br><br><br><br><br><br>
+                </div>
+            </div>
+        </div>
+
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

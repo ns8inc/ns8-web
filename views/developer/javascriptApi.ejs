@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg" style="min-height:900px">
+                <div class="col-lg-12">
+
+                    <h1>Javascript API</h1>
+
+                    The Javascript API provides a simple way to track website activity.
+                    <br /><br />
+                    <h3>The tracking script</h3>
+                    Before you can use the API, you must include the project's tracking script in the HEAD section of all the pages you wish to collect data on.&nbsp; This script can be found on the <a href="/setup/projects">Setup / Projects</a> menu item.
+                    <br /><br />
+                    <h3>Initialize the library</h3>
+                    The script requires the project id to be placed in the following line of code:
+                    <br /><br /><pre>var <%- application.branding.scriptName %> = new Aggregator( <b>[ your project id ]</b> );</pre>
+                    <br />
+                    <h2>JavaScript API calls:</h2>
+                    <ul>
+                        <li><a href="#logEvent">logEvent</a></li>
+                        <li><a href="#logPageview">logPageview</a></li>
+                        <li><a href="#logOutbound">logOutbound</a></li>
+                        <li><a href="#ready">ready</a></li>
+                        <li><a href="#setPerson">setPerson</a></li>
+                        <li><a href="#updateSession">updateSession</a></li>
+                        <li><a href="#updateEvent">updateEvent</a></li>
+                        <li><a href="#updatePerson">updatePerson</a></li>
+                    </ul>
+
+                    <br><a name="logEvent"></a><h3>logEvent</h3>
+                    Log an event, like a session start, signup or login.
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.logEvent( <i>eventName</i>, <i>[ data ]</i> )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>eventName</code></td><td>The event name, like 'Purchase' or 'Signup'.</td></tr>
+                        <tr><td><code>data</code></td><td>(optional) Extra data to add to the event.&nbsp; For example, revenue, user data or item codes.&nbsp; This should be
+                                passed as a JavaScript object literal, like: <br><br><code>{ revenue: 9.95, tax: 1.89 }</code>.</td></tr>
+                    </table>
+                    Examples:
+                    <br><pre><%- application.branding.scriptName %>.logEvent('Signup');</pre>
+                    <br><pre><%- application.branding.scriptName %>.logEvent('Signup', { firstName: 'Mary' });</pre>
+                    <br><pre><%- application.branding.scriptName %>.logEvent('Item Purchased', { itemName: 'A26533', itemQuantity: 1 } );</pre>
+
+                    <br><a name="logPageview"></a><br><h3>logPageview</h3>
+                    This functions logs a website page view.&nbsp; It is part of the default tracking script, but can be placed anywhere on the page, even in multiple
+                    places. For example, in addition to standard page views, you can use this function to track Ajax requests from various spots on a page.
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.logPageview( <i>[ pageName ]</i> )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>pageName</code></td><td>(optional) The page name.&nbsp; This defaults to the current page, but can be overridden with this value.</td></tr>
+                    </table>
+                    Example:
+                    <br><pre><%- application.branding.scriptName %>.logPageview('helpdialog.html');</pre>
+
+                    <br><a name="logOutbound"></a><br><h3>logOutbound</h3>
+                    This functions logs an outbound link event.  For more information and examples <a href="/developer/web/outboundlinks">click here</a>.
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.logOutbound( <i>eventName</i>, <i>href</i> or <i>callback</i>, [ <i>data</i> ] )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>eventName</code></td><td>The event name, like 'Exited From Home Page' or 'Signup to Pay'.</td></tr>
+                        <tr><td><code>href</code></td><td>The URL of the link to navigate to after the event is logged.</td></tr>
+                        <tr><td><code>callback</code></td><td>A function to call after the event is logged.</td></tr>
+                        <tr><td><code>data</code></td><td>(optional) Extra data to add to the event.&nbsp; For example, user data or item codes.&nbsp; This should be passed as a JavaScript object
+                                literal, like: <br><code>{ accountId: 'A123' }</code>.</td></tr>
+                    </table>
+                    Example of logging an exit from a signup page:
+                    <br><pre>&lt;a href="/somepage" onclick="<%- application.branding.scriptName %>.logOutbound('Exited Signup', this.href)"&gt;Leave Page&lt;/a&gt;</pre>
+
+                    <br>Example of using a callback:
+                    <br>
+<pre>
+<%- application.branding.scriptName %>.logOutbound('Contact',
+function() {
+console.log('this is called after the event is logged');
+window.location = '/nextpage';
+}
+);
+</pre>
+
+                    <br><a name="ready"></a><br><h3>ready</h3>
+                    Sets a callback function for when the <%- application.branding.scriptName %> library is fully loaded.&nbsp; This is not needed except in special circumstances, since most API calls are queued until the library is ready.
+                    <br><br>Example:
+                    <br><pre><%- application.branding.scriptName %>.ready(function () { console.log('Library loaded!'); }</pre>
+
+
+                    <br><br><a name="setPerson"></a><h3>setPerson</h3>
+                    Sets the user's identity, like an email address or a customer id.  This is useful for reporting on individual user activity.  Once you identify
+                    a person, the identity is automatically carried forward for all sessions for the person on the same device.  If the person uses multiple devices, you
+                    can identify the person across the devices to get a full profile of the person's activity.
+
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.setPerson( <i>personId</i>, [ <i>data</i> ] )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>personId</code></td><td>The person's unique id, like an email address or customer id.</td></tr>
+                        <tr><td><code>data</code></td><td>(optional) Data to attach to the person.  If this is set, <b>it will completely overwrite the data for the person</b>.  To update a
+                                person's data, use the <code>updatePerson</code> call.  See below for examples.</td></tr>
+                    </table>
+                    <br>Example - Set the session's person.  This id can be set after a login, or via a social API.
+                    <br><pre><%- application.branding.scriptName %>.setPerson('jane@corp.com');</pre>
+
+                    <br>Example - Set the session's person and add some data to the person.
+                    <br><pre><%- application.branding.scriptName %>.setPerson('jane@corp.com', { firstName: 'Jane', lastName: 'Smith', loginTime: new Date() });</pre>
+
+
+                    <br><br><a name="updateEvent"></a><h3>updateEvent</h3>
+                    Sets/updates data from an event that was previously recorded.  This could be used to update timings, or quantities.  You must have the unique id of the original event
+                    in order to update the event.
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.updateEvent( <i>id</i>, <i>data</i> )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>id</code></td><td>The event's unique id, like 'ORD0001'.  This is originally set with the <code>logEvent</code> call by setting the <code>id<code> attribute.</td></tr>
+                        <tr><td><code>data</code></td><td>What to update on the event.  See below for examples.</td></tr>
+                    </table>
+                    Examples:
+                    <br><pre><%- application.branding.scriptName %>.updateEvent('VIDEO00331', { title: 'Car ad' });</pre>
+                    <br><pre><%- application.branding.scriptName %>.updateEvent('VIDEO00331', { viewingTime: 18 });</pre>
+
+                    <br>Updates also support the following update operators on numeric data:
+                    <table class="table">
+                        <tr><td><code>$inc</code></td><td>Increments the value of the attribute by the specified amount.</td></tr>
+                        <tr><td><code>$mul</code></td><td>Multiplies the value of the attribute by the specified amount.</td></tr>
+                        <tr><td><code>$min</code></td><td>Only updates the attribute if the specified value is less than the existing field value.</td></tr>
+                        <tr><td><code>$max</code></td><td>Only updates the attribute if the specified value is greater than the existing field value.</td></tr>
+                        <tr><td><code>$unset</code></td><td>Deletes an attribute.</td></tr>
+                    </table>
+                    Use the following syntax for update operators:
+                    <pre>{ operator: { attribute name: value } }</pre>
+
+                    <br>Example - To add 5 seconds to the user's viewing time of a video:
+                    <br><pre><%- application.branding.scriptName %>.updateEvent('VIDEO00331', { $inc: { viewingTime: 5 } });</pre>
+
+                    <br>Example - To apply the maximum viewing time to 60 seconds:
+                    <br><pre><%- application.branding.scriptName %>.updateEvent('VIDEO00331', { $max: { viewingTime: 60 } });</pre>
+
+
+                    <br><br><a name="updatePerson"></a><h3>updatePerson</h3>
+                    Updates/merges the data on an existing person and sets the person for the session.  If the person doesn't exist, it is created.
+
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.updatePerson( <i>personId</i>, <i>data</i> )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>personId</code></td><td>The person's unique id, like an email address or customer id.</td></tr>
+                        <tr><td><code>data</code></td><td>What to update on the person.  See below for examples.</td></tr>
+                    </table>
+                    Examples:
+                    <br><pre><%- application.branding.scriptName %>.updatePerson('Customer 123', { email: 'jane@corp.com' });</pre>
+                    <br><pre><%- application.branding.scriptName %>.updatePerson('Customer 123', { firstName: 'Jane', lastName: 'Smith', viewingTime: 18 });</pre>
+
+                    <br>Updates also support the following update operators on numeric data:
+                    <table class="table">
+                        <tr><td><code>$inc</code></td><td>Increments the value of the attribute by the specified amount.</td></tr>
+                        <tr><td><code>$mul</code></td><td>Multiplies the value of the attribute by the specified amount.</td></tr>
+                        <tr><td><code>$min</code></td><td>Only updates the attribute if the specified value is less than the existing field value.</td></tr>
+                        <tr><td><code>$max</code></td><td>Only updates the attribute if the specified value is greater than the existing field value.</td></tr>
+                        <tr><td><code>$unset</code></td><td>Deletes an attribute.</td></tr>
+                    </table>
+                    Use the following syntax for update operators:
+                    <pre>{ operator: { attribute name: value } }</pre>
+
+                    <br>Example - Add one to the number of logins for a person:
+                    <br><pre><%- application.branding.scriptName %>.updatePerson('Customer 123', { $inc: { logins: 1 } });</pre>
+
+                    <br>Example - To apply the maximum viewing time of an offer to 10 seconds:
+                    <br><pre><%- application.branding.scriptName %>.updatePerson('Customer 123', { $max: { offerWatchedTime: 10 } });</pre>
+
+
+                    <br><a name="updateSession"></a><br><h3>updateSession</h3>
+                    Sets/updates data on the current session.
+                    <br><br>Syntax:<br><pre><%- application.branding.scriptName %>.updateSession( <i>data</i> )</pre>
+                    <br>Parameters:
+                    <table class="table">
+                        <tr><td><code>data</code></td><td>What to update on the session.  See below for examples.</td></tr>
+                    </table>
+                    Examples:
+                    <br><pre><%- application.branding.scriptName %>.updateSession({ viewedAd3: true });</pre>
+                    <br><pre><%- application.branding.scriptName %>.updateSession({ timeOnAd3: 12 });</pre>
+                    <br>Updates also support the following update operators on numeric data:
+                    <table class="table">
+                        <tr><td><code>$inc</code></td><td>Increments the value of the attribute by the specified amount.</td></tr>
+                        <tr><td><code>$mul</code></td><td>Multiplies the value of the attribute by the specified amount.</td></tr>
+                        <tr><td><code>$min</code></td><td>Only updates the attribute if the specified value is less than the existing field value.</td></tr>
+                        <tr><td><code>$max</code></td><td>Only updates the attribute if the specified value is greater than the existing field value.</td></tr>
+                        <tr><td><code>$unset</code></td><td>Deletes an attribute.</td></tr>
+                    </table>
+                    Use the following syntax for update operators:
+                    <pre>{ operator: { attribute name: value } }</pre>
+
+                    <br>Example - To add 5 seconds to the user's viewing time of an ad:
+                    <br><pre><%- application.branding.scriptName %>.updateSession({ $inc: { timeOnAd3: 5 } });</pre>
+
+                    <br>Example - To remove an attribute from a session:
+                    <br><pre><%- application.branding.scriptName %>.updateSession({ $unset: { trial: 1 } });</pre>
+
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

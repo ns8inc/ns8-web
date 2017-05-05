@@ -1,0 +1,10 @@
+This monitor checks if any system ports on a host are open when they should not be.  System ports are ports in the range of 0 to 1023.  Having any of these ports open unknowingly provides
+hackers a potential way to compromise your devices.
+<br><br>
+The reason locking down system ports is so important is because these ports require superuser privileges on Unix/Linux systems and expose the device to hacks beyond the service running.
+<br><br>
+This test is performed once per day.
+<br><br>
+Amazon EC2 users:  You must get permission from Amazon prior to scanning.
+<br><br>
+https://aws.amazon.com/security/penetration-testing/

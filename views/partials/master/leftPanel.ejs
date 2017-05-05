@@ -1,0 +1,16 @@
+<%
+    var project = application.api.currentProject(req);
+%>
+
+<nav class="navbar-default navbar-static-side hideAt768 hidden-print" role="navigation" style="z-index: 2011">
+    <div id="side-menu-container" class="sidebar-collapse hidden-print"></div>
+</nav>
+
+<script>
+    $(document).ready(function() {
+        Page.menuItems = <%- JSON.stringify(application.menuItems(req.session.user, req.session.account, project)) %>;
+        Page.menuLogo = '<%- application.branding.logoMenu %>';
+        Page.menuLogoSmall = '<%- application.branding.logoMenuSmall %>';
+        Page.renderMenu();
+    });
+</script>

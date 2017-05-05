@@ -1,0 +1,1004 @@
+<script src="/js/switchery.min.js"></script>
+<script type="text/javascript" src="/js/yaml.min.js"></script>
+<script type="text/javascript" src="/selectize/selectize.min.js"></script>
+<script>
+    //  this is the full set of monitors - used for tests
+    var monitors = <%- JSON.stringify(monitors) %>;
+
+    var tableOptions = {};
+    var firstLoad = true, selectedContacts, expectedValues, ports, selectedStations, dataTable, contacts = <%- JSON.stringify(contacts) %>, stations = <%- JSON.stringify(stations) %>;
+    var monitorTypes = <%- JSON.stringify(monitorTypes) %>;
+    var monitorDescriptions = <%- JSON.stringify(monitorDescriptions) %>;
+
+    function populateTable() {
+
+        /*  Create an array with the values of all the checkboxes in a column - this is used to sort on checkbox values   */
+        $.fn.dataTable.ext.order['dom-checkbox'] = function  ( settings, col )
+        {
+            return this.api().column( col, {order:'index'} ).nodes().map( function ( td, i ) {
+                return $('input', td).prop('checked') ? '1' : '0';
+            } );
+        }
+
+        $.fn.dataTable.ext.errMode = 'none';
+
+        var options = {
+            ajax: tableOptions.hasOwnProperty('dataUrl') ? tableOptions.dataUrl : "/monitors/data",
+            paging: tableOptions.hasOwnProperty('paging') ? tableOptions.paging : false,
+            searching: tableOptions.hasOwnProperty('searching') ? tableOptions.searching : true,
+            order: [[ 0, "asc" ], [ 1, "asc" ]],
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function (data, type, row) {
+                        return '<input onchange="setState(' + row.id + '); return false;" type="checkbox" id="enabled-' + row.id + '"' + (!row.paused ? ' checked' : '') + '>';
+                    },
+                    orderDataType: "dom-checkbox"
+                },
+                {
+                    targets: 1,
+                    render: function (data, type, row) {
+
+                        if (type == 'type' || type == 'sort')
+                            return row.name;
+
+                        return monitorDashboardLink(row);
+                    }
+                },
+                {
+                    targets: 2,
+                    visible: !tableOptions.hideType,
+                    render: function (data, type, row) {
+                        return monitorDescriptions[monitorTypes[row.type]].description;
+                    }
+                },
+                {
+                    targets: 3,
+                    render: function (data, type, row) {
+                        var status = 'OK';
+
+                        if (!row.hasOwnProperty('lastResult')) {
+                            return 'Not yet tested';
+                        } else if (row.lastResult.code != 0) {
+                            status = row.lastResult.result || (row.lastResult.messages ? row.lastResult.messages[row.lastResult.messages.length - 1].message : 'ERROR');
+                        }
+                        return '<a onclick="showResult(' + row.id + '); return false;" title="Click for details" class="fa fa-search-plus"></a>&nbsp; ' + status + '</td>';
+                    }
+                },
+                {
+                    targets: 4,
+                    render: function (data, type, row) {
+                        return Monitoring.streak(row);
+                    }
+                },
+                {
+                    targets: 5,
+                    render: function (data, type, row) {
+                        var ret = '<button onclick="setupTest(' + row.id + '); return false;" data-toggle="modal" data-target="#test-dialog" type="button" class="btn btn-primary btn-xs"><i class="fa fa-play"></i>&nbsp; Run Test</button>&nbsp;' +
+                                '<button onclick="editItem(' + row.id + '); return false" type="button" class="btn btn-primary btn-xs">Edit</button>';
+
+                        if (!tableOptions.hideDelete)
+                            ret += '&nbsp;<button onclick="deleteItem(\'' + row.id + '\'); return false" type="button" class="btn btn-delete btn-xs">Delete</button>';
+
+                        return ret;
+                    }
+                }
+            ],
+            createdRow: function (row, data, index) {
+
+                if (!data.hasOwnProperty('lastResult')) {
+                    $(row).addClass('warning');
+                } else if (data.lastResult.code != 0) {
+                    $(row).addClass('danger');
+                }
+            }
+        };
+
+        dataTable = $('#tableElement').DataTable(options);
+
+        dataTable.on('draw.dt', function ( e, settings, json) {
+            var data = getData();
+
+            for (var r = 0; r < data.length; r++) {
+                var elem = document.querySelector('#enabled-' + data[r].id);
+
+                //  undrawn elements will not be here
+                if (elem) {
+
+                    if (!$('#enabled-' + data[r].id).prop('switcheried')) {
+                        $('#enabled-' + data[r].id).prop('switcheried', true);        //  add prop to indicate already setup
+                        var switchery = new Switchery(elem, { color: '#1cb14f', size: 'small', speed: (tableOptions.page == 'operations' ? '0s' : '.3s') });
+                    }
+                }
+            }
+
+            //  pop create form if no data on first load
+            if (!tableOptions.hasOwnProperty('popCreateDialog') && tableOptions.popCreateDialog != false) {
+
+                if (firstLoad && data.length == 0)
+                    create();
+            }
+
+            firstLoad = false;
+        });
+    }
+
+    function monitorDashboardLink(monitor) {
+        var link, path = tableOptions.dashboardPath || '/dashboard';
+
+        switch (monitor.type) {
+            case monitorTypes.scoring:
+                link = path + '?template=scoring&projectId=' + monitor.projectId +  '&analyticsProjectId=' + monitor.analyticsProjectId + '&monitorName=' + encodeURIComponent(monitor.name) +
+                        '&title=' + encodeURIComponent('Bot/Fraud Activity for ' + monitor.name);
+                break;
+            case monitorTypes.performance:
+                link = path + '?template=timing&projectId=' + monitor.projectId +  '&analyticsProjectId=' + monitor.analyticsProjectId + '&monitorName=' + encodeURIComponent(monitor.name) +
+                        '&title=' + encodeURIComponent('Status for ' + monitor.name);
+                break;
+            case monitorTypes.website:
+            case monitorTypes.DNS:
+            case monitorTypes.ping:
+            case monitorTypes.port:
+                link = path + '?template=uptimeAndPerformance&projectId=' + monitor.projectId +  '&analyticsProjectId=' + monitor.analyticsProjectId + '&monitorName=' + encodeURIComponent(monitor.name) +
+                        '&title=' + encodeURIComponent('Uptime/Performance for ' + monitor.name);
+                break;
+            default:
+                link = path + '?template=uptime&projectId=' + monitor.projectId + '&monitorName=' + encodeURIComponent(monitor.name) +
+                        '&title=' + encodeURIComponent('Uptime for ' + monitor.name);
+                break;
+        }
+
+        return '<button class="btn btn-info btn-xs" onclick="window.location=\'' + link + '\'"><i class="fa fa-bar-chart"></i></button>&nbsp; ' + monitor.name;
+    }
+
+    function find(id) {
+        var data = getData();
+        for (var c = 0; c < data.length; c++)
+            if (data[c].id == id)
+                return data[c];
+    }
+
+    function getData() {
+        var json = dataTable.ajax.json();
+
+        if (json)
+            return json.data
+        else
+            return [];
+    }
+
+    function showResult(id) {
+        var monitor = find(id);
+        Monitoring.showResult(monitor.lastResult);
+    }
+
+    function setState(id) {
+        var url, monitor = find(id);
+
+        if ($('#enabled-' + monitor.id).is(':checked')) {
+            url = '/monitors/enable/' + monitor.id;
+
+            if (tableOptions.hasOwnProperty('pausedCount'))
+                tableOptions.pausedCount--;
+        } else {
+            url = '/monitors/disable/' + monitor.id;
+
+            if (tableOptions.hasOwnProperty('pausedCount'))
+                tableOptions.pausedCount++;
+        }
+
+        if (tableOptions.hasOwnProperty('displayPausedCount'))
+            tableOptions.displayPausedCount();
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            error: function (request, status, error) {
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    function deleteItem(id) {
+        var monitor = find(id);
+
+        Page.confirm('Are you sure?', 'Delete ' + monitor.name + '?', function() {
+
+            $.ajax({
+                type: "DELETE",
+                url: '/monitors/' + monitor.id,
+                success: function (data, status) {
+                    dataTable.ajax.reload(null, false);
+                },
+                error: function (request, status, error) {
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+
+    function setupTest(id) {
+        var html = '<select id="test-monitor" class="form-control" onchange="setTestStations()">';
+
+        for (var m = 0; m < monitors.length; m++) {
+            html += '<option value="' + monitors[m].id + '">' + monitors[m].name + '</option>';
+        }
+        $('#test-monitor-div').html(html + '</select>');
+
+        $('#test-monitor').val(id);
+        setTestStations();
+        $('#test-results').html('<h4 class="text-center">Select a monitor and station above and click \'Run\'</h4>');
+    }
+
+    function setTestStations() {
+        var monitor = find(+$('#test-monitor').val());
+
+        if (monitor) {
+            switch (monitor.type) {
+                case monitorTypes.performance:
+                case monitorTypes.scoring:
+                case monitorTypes.portScan:
+                    $('#testCloud').show();
+                    $('#testStations').hide();
+                    return;
+            }
+        }
+        $('#testCloud').hide();
+        $('#testStations').show();
+    }
+
+    function runTest() {
+        var monitor;
+
+        for (var c = 0; c < monitors.length; c++) {
+            //  use full list of monitors in case one disappeared due to being fixed
+            if (monitors[c].id == $('#test-monitor').val()) {
+                monitor = monitors[c];
+                break;
+            }
+        }
+
+        if (!monitor)
+            return;     //  monitor dropped off list while dialog was up
+
+        var params = {
+            monitorId: monitor.id,
+            stationId: $('#test-station').val()
+        }
+
+        $('#test-results').html('<br><div style="width:100%; height:96px;background: url(/images/preloader.gif) no-repeat center center"></div>' +
+                '<br><div style="width:100%; text-align:center"><h2>Testing...</h2></div>');
+
+        $.ajax({
+            type: "GET",
+            data: params,
+            url: '/monitors/test',
+            success: function (data, status) {
+
+                if (data && data.code != 200) {
+                    Page.alert('Error', data.message || 'Internal error', 'error');
+                } else {
+                    var result = data.data.data;
+
+                    var title = '<div style="width:100%; text-align:center"><h1 style="margin-top:0"><i class="fa fa-check-circle gator-green" style="font-size:32px"></i>&nbsp; Passed</h1></div>';
+
+                    if (result.code != 0)
+                        title = '<div style="width:100%; text-align:center"><h1 style="margin-top:0"><i class="fa fa-times" style="color: red; font-size:32px"></i>&nbsp; Failed</h1></div>';
+
+                    //  for this page, station and monitor name are not needed
+                    delete result.monitorName;
+                    delete result.stationId;
+
+                    $('#test-results').html(title + Monitoring.resultToHtml(result));
+                    //dataTable.ajax.reload(null, false);
+                }
+            },
+            error: function (request, status, error) {
+                Data.showError(request, status, error);
+                $('#test-dialog').modal('hide');
+            }
+        });
+    }
+
+    function typeSelected() {
+        var type = +$('#type').val();
+
+        $('#longIntervals').hide();
+        $('#shortIntervals').show();
+        $('#scriptOptionsDiv').hide();
+
+        selectedStations.clear();
+        $('#stations-all').prop('checked', true);
+        toggleStations();
+
+        $('#daysLeftDiv').hide();
+        $('#url').val('');
+        $('#endpointLabel').html('URL or IP');
+        $('#urlDiv').show();
+        $('#intervalDiv').show();
+        $('#timeoutDiv').show();
+        $('#advancedOptionsDiv').show();
+
+        $('#certOptions').hide();
+        $('#matchPhraseDiv').hide();
+        $('#userNameDiv').hide();
+        $('#passwordDiv').hide();
+        $('#recordDiv').hide();
+        $('#expectedValuesDiv').hide();
+        $('#exploitsDiv').hide();
+        $('#userDiv').hide();
+        $('#agentDiv').hide();
+        $('#portDiv').hide();
+        $('#scoreDiv').hide();
+        $('#stationsDiv').hide();
+        $('#timingDiv').hide();
+        $('#portsDiv').hide();
+
+        $('#type-description').html('');
+
+        switch (type) {
+            case monitorTypes.GSB:
+                $('#endpointLabel').html('URL or IP');
+                $('#type-description').html('Monitors if your site has been flagged by the Google Safe Browsing service for malware or phishing' +
+                    '<br><a href=# onclick="popDialog(\'monitor-gsb-dialog\'); return false">More info...</a>');
+                $('#advancedOptionsDiv').hide();
+                break;
+            case monitorTypes.DBL:
+                $('#endpointLabel').html('Domain or IP');
+                $('#type-description').html('Checks if your domain has been blocklisted, using the most reputable blocklists' +
+                    '<br><a href=# onclick="popDialog(\'monitor-dbl-dialog\'); return false">More info...</a>');
+                $('#advancedOptionsDiv').hide();
+                break;
+            case monitorTypes.performance:
+                $('#type-description').html('Monitors global load times and satisfaction levels from real users' +
+                    '<br><a href=# onclick="popDialog(\'monitor-rup-dialog\'); return false">More info...</a>');
+                $('#endpointLabel').html('Website');
+                $('#advancedOptionsDiv').hide();
+                $('#userDiv').show();
+                $('#timeoutDiv').hide();
+                $('#portDiv').hide();
+                $('#intervalDiv').hide();
+                $('#timingDiv').show();
+                break;
+            case monitorTypes.scoring:
+                $('#type-description').html('Monitors suspicious or fraudulent users and alerts you when the user quality score drops below a threshold' +
+                    '<br><a href=# onclick="popDialog(\'monitor-scoring-dialog\'); return false">More info...</a>');
+                $('#endpointLabel').html('Website');
+                $('#advancedOptionsDiv').hide();
+                $('#timeoutDiv').hide();
+                $('#portDiv').hide();
+                $('#intervalDiv').hide();
+                $('#scoreDiv').show();
+                break;
+            case monitorTypes.certificate:
+                $('#type-description').html('Monitors the validity of a certificate and how many days are left before it expires' +
+                    '<br><a href=# onclick="popDialog(\'monitor-certificate-dialog\'); return false">More info...</a>');
+                $('#endpointLabel').html('Hostname');
+                $('#daysLeftDiv').show();
+                $('#certOptions').show();
+                $('#intervalDiv').hide();
+                $('#portDiv').show();
+                $('#stationsDiv').show();
+                break;
+            case monitorTypes.DNS:
+                $('#type-description').html('Monitor that DNS entries match what you expect' +
+                    '<br><a href=# onclick="popDialog(\'monitor-dns-dialog\'); return false">More info...</a>');
+                $('#endpointLabel').html('Domain or IP');
+                $('#portDiv').hide();
+                $('#timeoutDiv').hide();
+                $('#recordDiv').show();
+                $('#expectedValuesDiv').show();
+                $('#stationsDiv').show();
+                $('#advancedOptionsDiv').hide();
+                break;
+            case monitorTypes.ping:
+                $('#type-description').html('Checks if an I.P. address or domain is responding to pings');
+                $('#endpointLabel').html('Hostname or IP');
+                $('#portDiv').hide();
+                $('#advancedOptionsDiv').hide();
+                $('#stationsDiv').show();
+                break;
+            case monitorTypes.website:
+
+                <% if (typeof application.isLetsMonitor == 'function' && application.isLetsMonitor() && !req.session.account.billingMethod) { %>
+                    $('#url').val('https://');
+                <% } %>
+                $('#type-description').html('Monitors a website for downtime and load times' +
+                    '<br><a href=# onclick="popDialog(\'monitor-website-dialog\'); return false">More info...</a>');
+                $('#matchPhraseDiv').show();
+                $('#userNameDiv').show();
+                $('#passwordDiv').show();
+                $('#agentDiv').show();
+                $('#stationsDiv').show();
+                break;
+            case monitorTypes.email:
+                $('#endpointLabel').html('Email Server');
+                $('#type-description').html('Checks email servers for open relays, block listings, and downtime' +
+                    '<br><a href=# onclick="popDialog(\'monitor-email-dialog\'); return false">More info...</a>');
+                $('#exploitsDiv').show();
+                $('#timeoutDiv').hide();
+                $('#advancedOptionsDiv').hide();
+                break;
+            case monitorTypes.port:
+                $('#endpointLabel').html('Hostname or IP');
+                $('#type-description').html('Checks if a server is accepting TCP connection requests on a specific port' +
+                    '<br><a href=# onclick="popDialog(\'monitor-tcp-dialog\'); return false">More info...</a>');
+                $('#portDiv').show();
+                $('#advancedOptionsDiv').hide();
+                $('#stationsDiv').show();
+                break;
+            case monitorTypes.portScan:
+                $('#endpointLabel').html('Hostname or IP');
+                $('#type-description').html('Checks if any system ports on a host are open when they should not be' +
+                    '<br><a href=# onclick="popDialog(\'monitor-port-scan-dialog\'); return false">More info...</a>');
+                $('#advancedOptionsDiv').hide();
+                $('#portsDiv').show();
+                $('#longIntervals').show();
+                $('#shortIntervals').hide();
+                break;
+        }
+    }
+
+    function getDNSValues() {
+        if (!$('#url').val()) {
+            Page.alert('Error', 'You must enter a hostname before getting DNS values.', 'error');
+            return;
+        }
+
+        $('html, body').css("cursor", "wait");
+
+        var data = {
+            hostname: $('#url').val(),
+            recordType: $('#recordType').val()
+        };
+
+        if ($('#stations').val())
+            data.stations = $('#stations').val().split(',');
+
+        $.ajax({
+            type: 'GET',
+            url: '/dns/resolve',
+            data: {
+                hostname: $('#url').val(),
+                recordType: $('#recordType').val()
+            },
+            success: function (data, status) {
+                $('html, body').css("cursor", "auto");
+                var result = data.data;
+
+                if (!result && !result.values) {
+                    Page.alert('No data returned.');
+                } else if (result.error && result.error.indexOf('NODATA') > -1) {
+                    Page.alert('Record not found.');
+                } else if (result.error && result.error.indexOf('NOTFOUND') > -1) {
+                    Page.alert('Unable to find DNS server.');
+                } else if (result.error) {
+                    Page.alert('The following error occured: ' + result.error);
+                } else {
+                    expectedValues.clear();
+
+                    for (var d = 0; d < result.values.length; d++) {
+                        expectedValues.createItem(result.values[d]);
+                    }
+                }
+            },
+            error: function (request, status, error) {
+                $('html, body').css("cursor", "auto");
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+    function popDialog(id) {
+        $('#' + id).modal();
+    }
+
+    function create() {
+        $('#type').prop('disabled', false);
+
+        $('#id').val('');
+        $('#main-form-modal')[0].reset();
+        $('#monitor-modal-title').html('Create Monitor');
+        $('#modal-create').modal();
+
+        <% if (typeof application.isLetsMonitor == 'function' && application.isLetsMonitor()) { %>
+            $('#type').val('<%- monitorTypes.certificate %>');
+        <% } else { %>
+            $('#type').val('<%- monitorTypes.website %>');
+        <% } %>
+
+        $('#scriptOptionsDiv').hide();
+
+        typeSelected();
+        expectedValues.clear();
+        ports.clear();
+        selectedContacts.clear();
+
+        selectedStations.clear();
+        $('#stations-all').prop('checked', true);
+        toggleStations();
+
+        if (contacts.length > 0)
+            selectedContacts.addItem(contacts[0].id);
+
+    }
+
+    function editItem(row) {
+        $('#type').prop('disabled', true);
+
+        var monitor = find(row);
+
+        if (!monitor.data)
+            monitor.data = {};
+
+        $('#id').val(monitor.id);
+        $('#title').html('Edit Monitor');
+        $('#name').val(monitor.name);
+
+        $('#type').val(monitor.type);
+
+        typeSelected();
+
+        $('#url').val(monitor.url);
+        $('#port').val(monitor.port);
+
+        if (monitor.interval) {
+            $('#interval').val(monitor.interval);
+            $('#longInterval').val(monitor.interval);
+        }
+
+        if (monitor.timeout)
+            $('#timeout').val(monitor.timeout);
+
+        $('#allowAuthorizationErrors').prop('checked', monitor.data.allowAuthorizationErrors);
+        $('#matchPhrase').val(monitor.data.matchPhrase);
+        $('#userName').val(monitor.data.userName);
+        $('#password').val(monitor.data.password);
+        $('#recordType').val(monitor.data.recordType);
+
+        if (monitor.data.hasOwnProperty('daysLeft'))
+            $('#daysLeft').val(monitor.data.daysLeft);
+        else
+            $('#daysLeft').val(7);
+
+        $('#monitorSubmit').val('Update');
+
+        ports.clearOptions();
+        ports.clear();
+
+        if (monitor.data.ports) {
+
+            for (var i = 0; i < monitor.data.ports.length; i++)
+                ports.createItem(monitor.data.ports[i].toString());
+        }
+
+        expectedValues.clearOptions();
+        expectedValues.clear();
+
+        if (monitor.data.expectedValues) {
+
+            for (var i = 0; i < monitor.data.expectedValues.length; i++)
+                expectedValues.createItem(monitor.data.expectedValues[i]);
+        }
+
+        selectedContacts.clear();
+
+        if (monitor.contacts) {
+
+            for (var i = 0; i < monitor.contacts.length; i++)
+                selectedContacts.addItem(monitor.contacts[i]);
+        }
+
+        selectedStations.clear();
+
+        if (monitor.stations) {
+            $('#stations-select').prop('checked', true);
+
+            for (var s = 0; s < monitor.stations.length; s++)
+                selectedStations.addItem(monitor.stations[s]);
+        } else {
+            $('#stations-all').prop('checked', true);
+        }
+        toggleStations();
+
+        if (monitor.script && !tableOptions.hideScript) {
+            $('#scriptOptionsText').html('&lt;script&gt;\r\n' + monitor.script + '\r\n&lt;/script&gt;');
+            $('#scriptOptionsDiv').show();
+        } else {
+            $('#scriptOptionsDiv').hide();
+        }
+
+        $('#monitor-modal-title').html('Edit Monitor');
+        $('#modal-create').modal();
+    }
+
+    function getFormData() {
+
+        //  have to enable type field or it is not passed to route
+        $('#type').prop('disabled', false);
+
+        var params = $('#main-form-modal').serializeArray()
+                .reduce(function(a, x) { a[x.name] = x.value; return a; }, {});
+
+        if (params.contacts)
+            params.contacts = selectedContacts.items;
+
+        if (params.expectedValues)
+            params.expectedValues = expectedValues.items;
+
+        if (params.ports)
+            params.ports = ports.items;
+
+        return params;
+    }
+
+    function upgrade(msg) {
+        swal({
+                title: 'Try the Upgrade',
+                text: msg,
+                type: "info",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: 'More info...'
+            },
+            function() {
+                document.location.href = '/upgrade';
+            }
+        );
+    }
+
+    function validateForm(successCallback) {
+
+        <% if (typeof application.isLetsMonitor == 'function' && application.isLetsMonitor() && !req.session.account.billingMethod) { %>
+
+            if ($('#type').val() != "7") {
+                upgrade('To create advanced monitors, an upgrade is required.  Upgrading enables access to all monitor types.');
+                return;
+            }
+        <% } %>
+
+        if (!$('#main-form-modal')[0].checkValidity()) {
+            // If the form is invalid, submit it. The form won't actually submit;
+            // this will just cause the browser to display the native HTML5 error messages.
+            $('#monitor-create-ok').click();
+            return false;
+        }
+
+        var formData = getFormData();
+
+        if (formData.name.indexOf('\'') > -1 || formData.name.indexOf('$') > -1 || formData.name.indexOf('"') > -1 || formData.name.indexOf('&') > -1 || formData.name.indexOf('<') > -1 || formData.name.indexOf('>') > -1) {
+            Page.alert('Error', 'Names cannot contain \' " $ & < >.', 'error');
+            return;
+        }
+
+        if (+formData.type == monitorTypes.DNS && !formData.expectedValues) {
+            Page.alert('Error', 'You must enter expected values', 'error');
+            return;
+        }
+
+        if (+formData.type == monitorTypes.port && !formData.port) {
+            Page.alert('Error', 'You must enter a port number for a port test', 'error');
+            return;
+        }
+
+        if (+formData.type == monitorTypes.portScan && !formData.ports) {
+            Page.alert('Error', 'You must enter the allowed ports', 'error');
+            return;
+        }
+
+        successCallback();
+    }
+
+    function submitForm() {
+
+        validateForm(function() {
+
+            var verb = 'POST', formData = getFormData();
+
+            if ($('#id').val()) {
+                //  edit item
+                verb = 'PUT';
+                formData.id = +$('#id').val();
+            }
+
+            $.ajax({
+                type: verb,
+                url: '/monitors/',
+                data: formData,
+                success: function (data, status) {
+                    dataTable.ajax.reload(function() {
+
+                        //  refresh full monitor list when creating from the monitors page
+                        if (verb == 'POST')
+                            monitors = getData();
+
+                        $('#modal-create').modal('hide');
+
+                        //  if monitor returns a script
+                        if (data.data && data.data.data && data.data.data.monitor && data.data.data.monitor.script) {
+                            $('#script-dialog').modal('show');
+                            $('#scriptText').html('&lt;script&gt;\r\n' + data.data.data.monitor.script + '\r\n&lt;/script&gt;');
+                        }
+                    }, false);
+                },
+                error: function (request, status, error) {
+                    $('#type').prop('disabled', true);
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+
+    function toggleStations() {
+        if ($("input[name='stationsOptions']:checked").val() == 'all')
+            $('#stationsInputDiv').hide();
+        else {
+            $('#stationsInputDiv').show();
+            selectedStations.focus();
+        }
+    }
+
+    $(document).ready(function() {
+        toggleStations();
+
+        var $ports = $('#ports').selectize({
+            delimiter: ',',
+            plugins: ['remove_button'],
+            persist: false,
+            createOnBlur: true,
+            create: true,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+
+        ports = $ports[0].selectize;
+
+        var $expectedValues = $('#expectedValues').selectize({
+            delimiter: ',',
+            plugins: ['remove_button'],
+            persist: false,
+            createOnBlur: true,
+            create: true,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+
+        expectedValues = $expectedValues[0].selectize;
+
+        var $contacts = $('#contacts').selectize({
+            delimiter: ',',
+            plugins: ['remove_button'],
+            closeAfterSelect: true,
+            createOnBlur: true,
+            create: false,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+
+        selectedContacts = $contacts[0].selectize;
+
+        for (var c = 0; c < contacts.length; c++) {
+            selectedContacts.addOption({ value: contacts[c].id, text: contacts[c].name  });
+        }
+
+        var $stations = $('#stations').selectize({
+            delimiter: ',',
+            plugins: ['remove_button'],
+            closeAfterSelect: true,
+            createOnBlur: true,
+            create: false,
+            onItemAdd: function () {
+                this.blur();
+            }
+        });
+
+        selectedStations = $stations[0].selectize;
+
+        for (var key in stations) {
+
+            if (stations.hasOwnProperty(key))
+                selectedStations.addOption({ value: key, text: stations[key].description });
+        }
+
+        //  set focus upon modal launch
+        $('#modal-create').on('shown.bs.modal', function () {
+            $('#name').focus();
+        });
+
+        populateTable();
+        typeSelected();
+
+        $('#help-name').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter the name or description of the monitor (for example, 'Corporate Website' or 'Priority Email Server'.  This is the name that will appear on the reports and screens throughout the system."
+        });
+
+        $('#help-type').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Select a type of monitor.  The options required will change based on which type you pick."
+        });
+
+        $('#help-url').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter the domain, url or I.P. address of the monitor.  This must be accessible from our monitoring stations and will be what will be used to test the monitor."
+        });
+
+        $('#help-alert-after').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Start sending alerts after this many minutes of errors. Set this to zero to send alerts immediately."
+        });
+
+        $('#help-reminders').popover({
+            html: true,
+            trigger: "hover",
+            placement: "left",
+            content: "After the initial alert is sent, send this many reminders afterwards."
+        });
+
+        $('#help-reminder-minutes').popover({
+            html: true,
+            trigger: "hover",
+            placement: "left",
+            content: "Wait this many minutes between sending reminder alerts."
+        });
+
+        $('#help-timeout').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "An alert is raised if the test takes longer than this many seconds.  This option can be used to raise alerts for a poorly performing service."
+        });
+
+        $('#help-port').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter the port for the monitor.  Leave blank to use the default and should only be changed if your service runs on a non-standard port."
+        });
+
+        $('#help-interval').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "This option specifies how often the test is performed for this monitor.  The monitoring stations take turns performing the test."
+        });
+
+        $('#help-match').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "This option will search the page for the text entered and raise an alert if the text is no longer on the page.  This option is helpful to determine if the page has been hacked.  For example, if your website sells coffee mugs, you may want to enter the word 'mugs' in this field."
+        });
+
+        $('#help-phishing').popover({
+            html: true,
+            trigger: "hover",
+            placement: "top",
+            content: "If selected, your site will be tested against a popular database of suspected phishing sites called PhishTank.  An alert will be raised if your site is listed."
+        });
+
+        $('#help-blocklist').popover({
+            html: true,
+            trigger: "hover",
+            placement: "left",
+            content: "We use the popular and reputable blocklists, including SpamHaus to check if your site is listed.  The Spamhaus Project is an international nonprofit " +
+            "organization that tracks spam and related cyber threats such as phishing, malware and botnets, provides realtime actionable and highly accurate " +
+            "threat intelligence to the Internet's major networks, corporations and security vendors, and works with law enforcement agencies to identify and " +
+            "pursue spam and malware sources worldwide."
+        });
+
+        $('#help-username').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "This is the basic authentication user name for website access, if required."
+        });
+
+        $('#help-password').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "This is the basic authentication password for website access, if required."
+        });
+
+        $('#help-record').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Select the DNS record type to lookup."
+        });
+
+        $('#help-expected').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter one or more values you expect to be returned from the DNS query.  All values must match.  Order does not matter."
+        });
+
+        $('#help-email-blocked').popover({
+            html: true,
+            trigger: "hover",
+            placement: "top",
+            content: "Monitors if any of your email server's I.P. addresses are listed on top reputable domain block lists."
+        });
+
+        $('#help-exploits').popover({
+            html: true,
+            trigger: "hover",
+            placement: "top",
+            content: "Monitors if any of your email server's I.P. addresses are listed as being hijacked or infected by illegal 3rd party exploits, including open proxies (HTTP, socks, AnalogX, wingate, etc), " +
+            "worms/viruses with built-in spam engines, and other types of trojan-horse exploits."
+        });
+
+        $('#help-agent').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter a custom user agent to use when performing the request.  If you do not specify one, a modern user agent will be used."
+        });
+
+        $('#help-skip').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "This is for:<ul>" +
+            "<li>Self-signed certificates</li>" +
+            "<li>A domain that is not listed on the certificate</li>" +
+            "<li>A certificate without a common certificate authority</li>" +
+            "</ul>"
+        });
+
+        $('#help-contacts').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Select one or more contacts to be alerted upon this monitor detecting a failure."
+        });
+
+        $('#help-days-left').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Select how many days prior to the certificate expiring you wish to be notified."
+        });
+
+        $('#help-script').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "This monitor requires a script be placed the pages you wish to analyze."
+        });
+
+        $('#help-score').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Scores are 0-1000.  Lower is worse.  Enter a minimum score to maintain before issuing an alert. (150 recommended)"
+        });
+
+        $('#help-timing').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter an average number of milliseconds your pages must be fully loaded before generating an alert."
+        });
+
+        $('#help-ports').popover({
+            html: true,
+            trigger: "hover",
+            placement: "right",
+            content: "Enter the ports that are allowed to be open.  For example a website should have port 80 open.  A HTTPS website should have port 443 open."
+        });
+    });
+</script>

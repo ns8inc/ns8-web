@@ -1,0 +1,109 @@
+<script>
+    var dataObj = null;
+    <%
+    //  If editing, set segment variable to edit
+    if (dataObj) {
+    %>
+    <%- 'dataObj = ' + JSON.stringify(dataObj) + ';' %>
+    <%  }  %>
+
+    var type = '<%- req.query.type %>';
+    var title = type.substr(0, 1).toLocaleUpperCase() + type.substr(1);
+</script>
+
+<div class="row white-bg">
+
+    <% include ../../partials/master/message %>
+
+    <div class="col-lg-8">
+        <h1 id="title"></h1>
+        <br>
+        <form id="actionForm" role="form" onsubmit="return false">
+            <div class="form-group">
+                <label>Attribute name:</label>
+                <input type="text" id="name" name="name" class="form-control m-b">
+            </div>
+            <div class="form-group">
+                <br><label>Description (shows up on help):</label>
+                <input type="text" id="description" name="description" class="form-control m-b">
+            </div>
+        </form>
+    </div>
+</div>
+<div class="row white-bg">
+    <div class="col-lg-4">
+        <form id="actionForm2" role="form" onsubmit="return false">
+            <div class="form-group">
+                <br><label>What kind of attribute is this?</label>
+                <br><input type="radio" id="attribTypeElement" name="attribType" class="m-b" value="element" checked> <b>Element</b>:&nbsp; These are generally character or date values that can be grouped, sorted and filtered on.  An example of an element is 'Platform'.
+                <br><input type="radio" id="attribTypeMetric" name="attribType" class="m-b" value="metric"> <b>Metric</b>:&nbsp; These are numeric values that can be totaled, sorted and filtered on.  An example of a metric is 'Revenue'.
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-4">
+        <h3>Example:</h3>
+        <form id="actionForm3" role="form" onsubmit="return false">
+            <table id="results-table-table" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" style="width: 100%; margin: 0px;" role="grid" aria-describedby="results-table-table_info">
+                <thead>
+                <tr role="row">
+                    <th class="sorting" tabindex="0" aria-controls="results-table-table" rowspan="1" colspan="1" style="width: 291px;"><i>This is an element</i><br><br>Browser</th>
+                    <th class="dt-body-right sorting_desc" tabindex="0" aria-controls="results-table-table" rowspan="1" colspan="1" style="width: 174px;" aria-sort="descending"><i>This is a metric that is summed</i><br><br>Sessions</span> <br><div style="font-weight:500;font-size:1.4em;padding-top:3px">7,299</div></th>
+                </tr>
+                </thead>
+                <tbody><tr role="row" class="odd">
+                    <td>Chrome</td>
+                    <td class="dt-body-right sorting_1"><span style="display:none">0000000004332</span>4,332<div style="display:inline-block; font-size:.825em;font-weight:500;min-width:47px !important">&nbsp; (59.35%)</div></td>
+                </tr>
+                <tr role="row" class="even">
+                    <td>Firefox</td>
+                    <td class="dt-body-right sorting_1"><span style="display:none">0000000001452</span>1,452<div style="display:inline-block; font-size:.825em;font-weight:500;min-width:47px !important">&nbsp; (19.89%)</div></td>
+                </tr></tbody>
+            </table>
+        </form>
+    </div>
+</div>
+
+<div class="row white-bg">
+    <div class="col-lg-8">
+        <form id="actionForm3" role="form" onsubmit="return false">
+            <div id="elementOptions">
+                <div class="form-group">
+                    <br><label>What kind of data will this attribute hold:</label>
+                    <select class="form-control m-b" id="dataType" name="dataType">
+                        <option value="string">String (character data)</option>
+                        <option value="numeric">Number</option>
+                        <option value="date">Date</option>
+                        <option value="boolean">Boolean (true or false value)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="numericOptions">
+                <br><label>Display format: (<a href="/formatoptions">show options</a>)</label>
+                <br><input id="format" name="format" class="form-control m-b" value="0,0.00">
+            </div>
+            <div id="metricOptions">
+                <div class="form-group">
+                    <label>Show totals on reports for this metric as:</label>
+                    <br><input type="radio" id="totalSum" name="totalBy" class="m-b" value="sum" checked> Sum
+                    <br><input type="radio" id="totalAvg" name="totalBy" class="m-b" value="average"> Average
+                    <br><input type="radio" id="totalNone" name="totalBy" class="m-b" value="none"> None
+                </div>
+                <div class="form-group">
+                    <br><label>Show relationship to total on reports for this metric by:</label>
+                    <br><input type="radio" id="brPercent" name="basisRelationship" class="m-b" value="percent" checked> Percentage (for example, 12.2% of sessions)
+                    <br><input type="radio" id="brRatio" name="basisRelationship" class="m-b" value="ratio"> Ratio (for example, 2.3 page views per session)
+                </div>
+            </div>
+            <div class="form-group">
+                <br><label>Should this attribute be included as a filter option on reports?</label>
+                <br><input type="radio" id="filterYes" name="filter" class="m-b" value="yes" checked> Yes
+                <br><input type="radio" id="filterNo" name="filter" class="m-b" value="no"> No
+            </div>
+            <div>
+                <br>
+                <button onclick="submitForm(); return false" class="btn btn-sm btn-primary m-t-n-xs" type="submit"><strong id="attributeSubmit">Create</strong></button>
+                <br><br><br><br><br><br><br>
+            </div>
+        </form>
+    </div>
+</div>

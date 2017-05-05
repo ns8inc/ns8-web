@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content animated fadeInRight">
+
+            <% include partials/master/message %>
+            <div class="ibox-content forum-container">
+                <div class="forum-item active">
+                    <div class="row white-bg" style="min-height:900px">
+                        <div class="col-lg-12">
+                            <h1>Browser Capabilities</h1>
+                            <table class="table">
+                                <tr><td id="cap1"></td><td id="cap1Value"></td></tr>
+                                <tr><td id="cap2"></td><td id="cap2Value"></td></tr>
+                                <tr><td id="cap3"></td><td id="cap3Value"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+<script>
+
+    $(document).ready(function() {
+        var d = document, w = window;
+        var sc = {
+            t1: function () { try { new w['MSBlobBuilder'](); return '1'; } catch (e) { return '0'; } },
+            t2: function () { try { if (typeof d.createElement('audio')['mozSrcObject'] === 'undefined') { return '0'; } return '1'; } catch (err) { return '0'; } },
+            t3: function () { try { if (typeof d['webkitVisibilityState'] === "undefined") { return '0'; } return '1'; } catch (err) { return '0'; } }
+        };
+
+        $('#cap1').html('MSBlobBuilder');
+        $('#cap1Value').html(sc.t1());
+
+        $('#cap2').html('mozSrcObject');
+        $('#cap2Value').html(sc.t2());
+
+        $('#cap3').html('webkitVisibilityState');
+        $('#cap3Value').html(sc.t3());
+
+        try {
+
+            if (!Aggregator){var Aggregator=function(o){
+                var d=document,p=Aggregator.prototype;this.options=o;this.q=[];d.cookie='__na_c=1';p.p=function(c){return function(){
+                    this.q.push([c,arguments])}};p.setPerson=p.p(4,arguments);p.logEvent=p.p(0,arguments);p.logPageview=p.p(1,arguments);
+                p.ready=p.p(2,arguments);p.logOutbound=p.p(3,arguments);p.updatePerson=p.p(5,arguments);p.updateSession=p.p(6,arguments);
+                p.updateEvent=p.p(7,arguments);p.push=p.p(8,arguments);var s=d.createElement('script');s.type='text/javascript';s.async=1;
+                (function(i){s.onreadystatechange=function(){if(s.readyState=='loaded'||s.readyState=='complete'){i.run();}};
+                    s.onload=function(){i.run();}})(this);s.src='http'+(location.protocol=='https:'?'s:'+'//a-{0}.gator.io':
+                        ':'+'//a-{0}.scripts.gator.io').replace('{0}',o.projectId)+'/web/latest?'+
+                        Math.floor((new Date()*.00001)/36);var e=d.getElementsByTagName('script')[0];e.parentNode.insertBefore(s,e);
+            }};
+
+            var gator = new Aggregator({
+                "projectId": 200000005,
+                "nop": true,
+                "legacyAccount": (wa_isenc ? "#" : "") + wa_account
+            });
+            gator.logPageview();
+
+            if (typeof ec_Orders_orderID != 'undefined') {
+                var na_evtData = {};
+
+                if (ec_Orders_orderID && ec_Orders_orderID != 'YOUR-UNIQUE-ID')
+                    na_evtData.id = ec_Orders_orderID;
+
+                if (ec_Orders_orderAmt && ec_Orders_orderAmt != 'YOUR-ORDER-AMOUNT')
+                    na_evtData.revenue = ec_Orders_orderAmt;
+
+                gator.logEvent('Order', na_evtData);
+
+                if (wa_EmailAddress)
+                    gator.setPerson(wa_EmailAddress);
+            }
+
+        } catch (err) {
+        }
+    });
+</script>
+</body>
+</html>

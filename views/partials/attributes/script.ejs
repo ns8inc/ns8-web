@@ -1,0 +1,59 @@
+<script>
+    var type = '<%- req.query.type %>';
+    var title = type.substr(0, 1).toLocaleUpperCase() + type.substr(1);
+
+    var attributes = [], attributeObj = <%- JSON.stringify(attributes[req.query.type] || {}) %>;
+
+    for (var key in attributeObj) {
+        if (attributeObj.hasOwnProperty(key))
+            attributes.push({ name: key, description: attributeObj[key].description, dataType: attributeObj[key].dataType });
+    }
+
+    function setupAttributesTable() {
+        $('#dataTable').DataTable({
+            data: attributes,
+            columns: [
+                { title: "Name" },
+                { title: "Description" },
+                { title: "Data Type" },
+                { title: "Action", className: "dt-body-right" }
+            ],
+            columnDefs : [
+                { "targets": 0, "data":  "name" },
+                { "targets": 1, "data":  "description" },
+                { "targets": 2, "data":  "dataType" },
+                {
+                    "targets" : 3,
+                    "data" : "id",
+                    "render": function (data, type, row, meta) {
+                        return '<button onclick="window.location=(\'/setup/attributes/form/<%- project.id %>?type=<%- req.query.type %>&name=' + Utils.replaceAll(row.name, "'", "\'") + '\')" type="button" class="btn btn-primary btn-xs">Edit</button>' +
+                            ' <button onclick="deleteObject(\'<%- req.query.type %>\', \'' + Utils.replaceAll(row.name, "'", "\'") + '\'); return false;" type="button" class="btn btn-delete btn-xs">Delete</button>';
+                    }
+                }
+            ]
+        });
+    }
+
+    function actionButtonsHtml(attribute) {
+        return '<button onclick="window.location=(\'/setup/attributes/form/<%- project.id %>?id=' + attribute.id + '\')" type="button" class="btn btn-primary btn-xs">Edit</button>' +
+            '&nbsp;<button onclick="deleteObject(' + attribute.id + ')" type="button" class="btn btn-delete btn-xs" data-toggle="modal" data-target="#modal-confirm">Delete</button>';
+    }
+
+    function deleteObject(type, name) {
+        Page.confirm('Are you sure?', 'Permanently delete attribute ' + name + '?', function() {
+            Data.delete('/setup/attributes/<%- project.id %>?type=' + type + '&name=' + encodeURIComponent(name), function () {
+                window.location = '/setup/attributes/<%- project.id %>?type=<%- req.query.type %>';
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        setupAttributesTable();
+
+        $('#title').html(title + ' Attributes for Project: <%- project.name %>');
+
+        $('#name').focus(function() {
+            $('#name').removeClass('has-error');
+        });
+    });
+</script>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../partials/master/header %>
+</head>
+
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <% include ../partials/master/message %>
+            <div class="row white-bg">
+                <div class="col-lg-12">
+
+                    <h1>Overview</h1>
+                    You can collect data on websites and apps by utilizing the techniques detailed in this section.  Once data collection is setup, you will automatically
+                    see the results in the reports.  Websites and apps track different data.  Websites generally track sessions, pageviews and events, where apps track sessions and events.
+                    Websites also track web-based data, like referrers, search engine referrals and browsers.
+                    <br><br>
+                    A websites and app can be the same project.  For example, you may want to track events across a website and an app.  Also, if you identify a user on a website and an
+                    app, you can track user data across devices.
+
+                    <br><br><h3>Data Categories Tracked:</h3>
+                    <table class="table">
+                        <tr><td><label>Sessions</label></td>
+                            <td>
+                                Sessions are defined as:
+                                <li>A new user visits your app or site.</li>
+                                <li>30 minutes elapses from the user's last interaction.</li>
+                                <li>For web tracking, the user re-enters the site or app from a different source (campaign, referrer, or search engine)</li>
+                            </td>
+                        </tr>
+                        <tr><td><label>Events</label></td><td>An event is an activity performed by a user, like 'App Launch', or 'Signup'.  Events are tracked via JavaScript or API calls.  Events
+                                can track any extra data.  For example, a signup event can also pass in the user's name and other info.</td></tr>
+                        <tr><td><label>Pageviews</label></td><td>For web tracking, pageviews and page navigation can be tracked.</td></tr>
+                        <tr><td><label>Users</label></td><td>Users are visitors to your website or app.</td></tr>
+                        <tr><td><label>People</label></td><td>A person is a known user, which means you have identified the user with the 'setPerson' API call.  Generally, a person
+                                is known to you when they log in or identify themselves in some other way.  People can be tracked across devices, however, users cannot be.</td></tr>
+                    </table>
+
+                    Tracking records data called 'attributes'.  We collect a large number of attributes per session and these can be reported on immediately.  Attributes can be either elements
+                    or metrics:
+                    <br><br><h3>Definitions of attribute types:</h3>
+                    <table class="table">
+                        <tr><td><label>Attribute</label></td><td>A generic term for either an element or a metric. Attributes are also known as 'fields' or 'properties'.  Example attributes are 'sessions' and 'platform'.</td></tr>
+                        <tr><td><label>Element</label></td><td>An attribute (generally a string or date) that reports can be grouped on.  For example, 'Event Name' or 'Campaign'.</td></tr>
+                        <tr><td><label>Metric</label></td><td>A numeric attribute that can have summary operations computed on, like totals, averages, etc.  For example, 'Average Session Length'.</td></tr>
+                    </table>
+
+                    <h2>Hybrid Website and App Projects</h2>
+
+                    <br>Each project can track both website and/or app data.&nbsp; For a website, use our <a href="/developer/web/gettingstarted">Website Tracking API</a>.&nbsp; To
+                    track data on a mobile app, or any application, you can use one of our native APIs or our <a href="/developer/rest">REST API</a>.
+
+                    <br /><br />To track combined web and app data, just make sure the website's tracking script and the app's API key come from the same
+                    project.&nbsp; You can get both from the <a href="/setup/projects">Setup / Projects</a> menu item.
+
+                </div>
+            </div>
+        </div>
+        <% include ../partials/master/footer %>
+    </div>
+</div>
+
+<% include ../partials/master/footerScripts %>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+</head>
+<body class="white-bg">
+
+<div id="wrapper">
+
+    <div class="wrapper embedded-content">
+        <div class="row">
+
+            <% include partials/master/message %>
+
+            <div class="col-lg-12">
+                <h1><%- title %></h1>
+                <br>
+                <%- message %>
+            </div>
+            <div class="col-lg-6">
+                <br><label>To install this app, enter your shop name:</label>
+                <form class="form-inline">
+                    <div class="form-group">
+                        <input name="shop" id="shop" placeholder="Enter shop..." class="form-control" style="min-width:350px"/>
+                    </div>
+                    <button onclick="createAuthLink(); return false;" type="button" class="btn btn-primary btn-md">Get Authorization Link</button>
+                </form>
+                <div id="link"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function createAuthLink() {
+        var redirect = ('<%- dev ? '' : 'https:' %>' || location.protocol) + '//' + '<%- dev ? req.headers['host'] + '/shopify/install' : settings.domain + '/shopify/install'; %>';
+
+        var shop = $('#shop').val().toLocaleLowerCase();
+
+        if (shop.indexOf('.') == -1)
+            shop += '.myshopify.com';
+
+        var params = {
+            appId: <%- application.current.id %>,
+            query: {
+                shop: shop,
+                timestamp: Math.floor(new Date().getTime() / 1000)
+            },
+            redirect_uri: redirect
+        };
+
+        $.ajax({
+            type: "POST",
+            data: params,
+            url: '<%- settings['apiUrl'] %>/v1/shopify/authurl',
+            success: function (data, status) {
+                $('#link').html('<br><label>Click on this link to install the app:<br><a href="' + data.data.url + '">' + data.data.url + '</a>');
+            },
+            error: function (request, status, error) {
+                Data.showError(request, status, error);
+            }
+        });
+    }
+
+</script>
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+</body>
+</html>

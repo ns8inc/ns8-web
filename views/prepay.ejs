@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+    <title>Authorize Prepayment</title>
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+</head>
+<body class="fixed-navigation">
+
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div class="wrapper wrapper-content">
+
+            <div class="row white-bg" style="min-height: 900px">
+                <% include partials/master/message %>
+
+                <div class="col-lg-6">
+                    <h1 id="title">Authorize Prepayment</h1>
+                    Prepayments will use your primary payment method.  Prepayments create a credit on your account that is used for future invoices.
+                    <% if (application.current && application.current.minimumPrepay) { %>
+                    <br><br>The minimum prepayment amount is $<%-application.current.minimumPrepay %> (USD).</b>
+                    <% } %>
+                    <br><br><b>By prepaying, your account will be credited an extra 10% of the amount of the prepayment.</b>
+                    <br><br>
+
+                    <% if (paymentMethodCount == 0) { %>
+                    You must first set up a payment method before you can prepay.  <a href="/billing/paymentmethods">Click here</a> to set up a payment method.
+                    <% } else { %>
+
+                    <form action="" method="POST" id="prepayment-form">
+                        <div id="error-box" class="row hidden">
+                            <div class="col-lg-8">
+                                <div class="alert alert-danger">
+                                    <span class="payment-errors"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group"><label>Prepayment Amount (USD)</label>
+                            <input class="form-control" type="text" style="width:200px" name="amount" id="amount" />
+                        </div>
+
+                        <br><button class="btn btn-md btn-primary m-t-n-xs" type="submit">Submit</button>
+                    </form>
+                    <% } %>
+
+                    <br><br><br><br><br><br><br>
+                </div>
+            </div>
+        </div>
+        <% include partials/master/footer %>
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+
+<script type="text/javascript">
+    jQuery(function($) {
+        $('#prepayment-form').submit(function(event) {
+
+            var amount = $('#amount').val();
+
+            if (amount.substr(0, 1) == '$')
+                amount = amount.substr(1);
+
+            if (!Utils.isNumber(amount)) {
+                Page.showMessage('You must enter a numeric value without currency symbols. All amounts are in USD.');
+            } else {
+
+                Page.confirm('Are you sure?', 'Prepay ' + amount + ' (USD) from your primary payment method?', function() {
+
+                    var $form = $(this);
+
+                    // Disable the submit button to prevent repeated clicks
+                    $form.find('button').prop('disabled', true);
+
+                    $.ajax({
+                        type: "POST",
+                        url: '/billing/prepay',
+                        data: { amount: amount },
+                        success: function (data, status) {
+                            location.href = '/billing/payments';
+                        },
+                        error: function (request, status, error) {
+                            $('#modal-create').modal('hide');
+                            Data.showError(request, status, error);
+                        }
+                    });
+                });
+            }
+            return false;
+
+        });
+    });
+
+</script>
+
+</body>
+</html>

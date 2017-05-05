@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include partials/report/header %>
+    <% include partials/master/header %>
+    <link href="/query-builder/css/query-builder.default.css" rel="stylesheet">
+    <link href="/css/funnel.css" rel="stylesheet">
+</head>
+<body class="fixed-navigation">
+<div id="wrapper">
+
+    <% include partials/master/leftPanel %>
+
+    <div id="page-wrapper" class="white-bg">
+
+        <% include partials/master/topPanel %>
+
+        <div id="content" class="wrapper wrapper-content" style="padding-right: 15px;">
+
+            <div class="row white-bg">
+                <% include partials/master/message %>
+
+                <div class="col-md-12 col-lg-7">
+                    <h1 id="page-title"></h1>
+                    <h2 class="visible-print">Project: <%- application.api.currentProject(req).name %></h2>
+                </div>
+                <div class="col-md-12 col-lg-5">
+                    <% include partials/log/toolbar %>
+                </div>
+            </div>
+            <div class="row white-bg hidden-print">
+                <div class="col-md-6">
+                    <h4 class="text-navy">Show Metrics:</h4>
+                    <input class="form-control" id="metrics" data-placeholder="Choose metrics, like sessions or page views..." type="text">
+                    <h4 class="text-navy">By:</h4>
+                    <input class="form-control" id="elements" data-placeholder="Choose elements, like browser or platform..." type="text">
+                    <br />
+                </div>
+                <div class="col-md-6">
+                    <h4 class="text-navy">Filter:</h4>
+                    <div id="filter-builder"></div>
+                </div>
+            </div>
+            <div class="row white-bg">
+                <div class="col-md-12">
+                    <h2>Steps: <span id="completion"></span></h2>
+                </div>
+            </div>
+            <div class="row white-bg">
+                <div id="step-0" class="funnel-step col-xs-4 col-sm-4 col-md-3 col-lg-2"></div>
+                <div id="step-1" class="funnel-step col-xs-4 col-sm-4 col-md-3 col-lg-2"></div>
+                <div id="step-2" class="funnel-step col-xs-4 col-sm-4 col-md-3 col-lg-2"></div>
+                <div id="step-3" class="funnel-step col-xs-4 col-sm-4 col-md-3 col-lg-2"></div>
+                <div id="step-4" class="funnel-step col-xs-4 col-sm-4 col-md-3 col-lg-2"></div>
+                <div id="step-5" class="funnel-step col-xs-4 col-sm-4 col-md-3 col-lg-2"></div>
+            </div>
+            <div class="row white-bg">
+                <div class="col-md-12">
+                    <h2 id="event-title"></h2>
+                </div>
+            </div>
+            <div class="row white-bg">
+                <div class="col-lg-12">
+                    <div id="results-table-0" style="display:none;margin-top:15px">&nbsp;</div>
+                    <div id="results-table-1" style="display:none;margin-top:15px">&nbsp;</div>
+                    <div id="results-table-2" style="display:none;margin-top:15px">&nbsp;</div>
+                    <div id="results-table-3" style="display:none;margin-top:15px">&nbsp;</div>
+                    <div id="results-table-4" style="display:none;margin-top:15px">&nbsp;</div>
+                    <div id="results-table-5" style="display:none;margin-top:15px">&nbsp;</div>
+                    <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+                </div>
+            </div>
+        </div>
+
+        <% include partials/master/footer %>
+
+    </div>
+</div>
+
+<% include partials/master/footerScripts %>
+<% include partials/report/footerScripts %>
+<script src="/query-builder/js/query-builder.standalone.min.js"></script>
+<script src="/js/query-builder.custom.js"></script>
+<script src="/typeahead/typeahead.jquery.min.js"></script>
+
+<script>
+
+    //  set the timezone to the user's timezone
+    moment.tz.setDefault('<%- req.session.user.timezone ? req.session.user.timezone.momentName : 'UTC' %>');
+
+    var i, maxSteps = 6, reports = [];
+
+    var suppressUpdates = false, title;
+    var report = new Report();
+    report.settings = <%- JSON.stringify(definition.settings) %>;       //  set static setting from report definition
+    report.state = <%- JSON.stringify(definition.initialState) %>;      //  set initial state from options
+    report.state.activeStep = 0;
+    report.state.eventSteps = [];
+
+    $('#page-title').html(report.settings.title);
+
+    var metricSelectize = $('#metrics').selectize({
+        options: <%- JSON.stringify(metricOptions) %>,
+        items: Utils.replaceAll(report.state.attributes, ' ', '').split(','),
+        plugins: ['drag_drop','remove_button'],
+        delimiter: ',',
+        closeAfterSelect: true,
+        onItemAdd: function () {
+            this.blur();
+        },
+        optgroups:[{ id: 'Custom', name: 'Custom Attributes' }, { id: 'Standard', name: 'Standard Attributes' }],
+        optgroupField: 'optgroup',
+        optgroupLabelField: 'name',
+        optgroupValueField: 'id'
+    });
+
+    var elementSelectize = $('#elements').selectize({
+        options: <%- JSON.stringify(elementOptions) %>,
+        items: report.state.group ? Utils.replaceAll(report.state.group, ' ', '').split(',') : [],
+        plugins: ['drag_drop','remove_button'],
+        delimiter: ',',
+        closeAfterSelect: true,
+        onItemAdd: function () {
+            this.blur();
+        },
+        optgroups:[{ id: 'Custom', name: 'Custom Attributes' }, { id: 'Standard', name: 'Standard Attributes' }],
+        optgroupField: 'optgroup',
+        optgroupLabelField: 'name',
+        optgroupValueField: 'id'
+    });
+
+    function runQuery(step) {
+        step = step || 0;
+
+        if (suppressUpdates)
+            return;
+
+        if (!Filter.validate('filter-builder'))
+            return;
+
+        if (!$('#projects').val()) {
+            Page.showMessage('Please select a project.&nbsp; <a href="/setup/projects/form">Click here</a> to create a new project.');
+            return;
+        }
+
+        if (!$('#metrics').val()) {
+            Page.showMessage('You must select at least one metric to report on.');
+        } else {
+
+            //  set options for both chart and table
+            report.pageOptions = {
+                projectId: $('#projects').val(),
+                timezone: '<%- req.session.user.timezoneId %>',
+                onStateChange: pushState
+            }
+
+            setState();
+
+            if (report.state.eventSteps.length == 0) {
+                renderSteps(step);
+            } else {
+
+                var completed = 0;
+
+                for (var i = step; i < report.state.eventSteps.length; i++) {
+                    reports[i] = new Report();
+                    reports[i].settings.entity = 'users';
+                    reports[i].state = Utils.clone(report.state);
+                    reports[i].pageOptions = Utils.clone(report.pageOptions);
+                    reports[i].pageOptions.tableContainer = 'results-table-' + i;
+                    reports[i].state.eventSteps = report.state.eventSteps.slice(0, i + 1);
+                    reports[i].step = i;
+
+                    reports[i].run(function(err) {
+
+                        if (!err) {
+                            pushState();
+                            renderSteps(step);
+                        } else {
+                            Page.doneLoading();
+                        }
+
+                        completed++;
+
+                        //  if being exported, notify service that rendering is done
+                        if (completed >= report.state.eventSteps.length) {
+                            if (typeof window.callPhantom === 'function') {
+                                window.callPhantom({ status: 'complete' });
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    var firstPush = true;
+
+    function pushState() {
+        if (history.pushState) {
+
+            if (firstPush)
+                history.replaceState( { reportState: report.state, reportSettings: report.settings, tableData: report.tableData, chartData: report.chartData }, '',
+                        window.location.href.split('?')[0] + '?options=' + encodeURIComponent(JSON.stringify(report.state)));
+            else
+                history.pushState( { reportState: report.state, reportSettings: report.settings, tableData: report.tableData, chartData: report.chartData }, '',
+                        window.location.href.split('?')[0] + '?options=' + encodeURIComponent(JSON.stringify(report.state)));
+
+            firstPush = false;
+        }
+    }
+
+    window.onpopstate = function(settings) {
+
+        if (settings && settings.state) {
+            report.settings = settings.state.reportSettings;
+            restoreState(settings.state.reportState);
+            report.tableData = settings.state.tableData;
+            report.chartData = settings.state.chartData;
+            report.render();
+        }
+    };
+
+    function setState() {
+        report.state.dateLabel = Toolbar.dateLabel;
+        report.state.dateInterval = $("#reportIntervalTitle").html();
+        report.state.attributes = $("#metrics").val();
+
+        if ($("#elements").val())
+            report.state.group = $("#elements").val();
+        else
+            report.state.group = null;  //  funnels default to grouping for totals
+
+        if ($("#filter-builder").queryBuilder('validate'))
+            report.state.filter = $("#filter-builder").queryBuilder('getMongo');
+        else
+            delete report.state.filter;
+
+        if (Toolbar.dateLabel == 'Custom') {
+            report.state.dateStart = Toolbar.dateStart;
+            report.state.dateEnd = Toolbar.dateEnd;
+        } else {
+            delete report.state.dateStart;
+            delete report.state.dateEnd;
+        }
+
+        if (!report.state.plotKeys)
+            delete report.state.plotKeys;
+
+        if (!report.state.tableOrder)
+            delete report.state.tableOrder;
+    }
+
+    function restoreState(state) {
+
+        suppressUpdates = true;
+
+        report.state = state;
+
+        if (state.filter && Object.keys(state.filter).length > 0)
+            Filter.setRules('filter-builder', state.filter);
+        else
+            Filter.reset('filter-builder');
+
+        if (report.settings.title)
+            $('#page-title').html(report.settings.title);
+
+        Toolbar.setValues(state.dateLabel, state.dateStart, state.dateEnd, state.dateInterval);
+        Toolbar.draw();
+
+        metricSelectize[0].selectize.clear();
+        state.attributes.split(',').forEach(function(item) {metricSelectize[0].selectize.addItem(item.trim());});
+
+        elementSelectize[0].selectize.clear();
+
+        if (state.group)
+            state.group.split(',').forEach(function(item) {elementSelectize[0].selectize.addItem(item.trim());});
+
+        renderSteps();
+
+        suppressUpdates = false;
+    }
+
+    var filterOptions = <%- JSON.stringify(filterOptions) %>;
+
+    function setStep(step, eventName) {
+        report.state.eventSteps[step] = eventName;
+        runQuery(step);
+        setActiveStep(step);
+        pushState();
+    }
+
+    function renderStep(step) {
+        var html = '', steps = report.state.eventSteps;
+
+        if (step >= steps.length) {
+            $('#results-table-' + step).html('');
+        }
+
+        if (step == report.state.activeStep && steps.length > step)
+            $('#event-title').html('Event ' + (step + 1) + ': ' + report.state.eventSteps[step]);
+
+        if (step < steps.length + 1) {
+            var value = steps[step] ? Utils.replaceAll(steps[step], '"', '\"') : '';
+
+            var printClass = step == steps.length ? ' hidden-print' : '';
+
+            html += '<div class="funnel-search">' +
+                    '  <input id="input-' + step + '" value="' + value + '" class="funnel-search-input event-typeahead form-control input-md' + printClass + '" placeholder="Event name" ' +
+                    '    autocomplete="off" spellcheck="false" tabindex="1" type="text" />';
+
+            if (step != steps.length)
+                html += '  <a href="#" onclick="clearStep(' + step + '); return false" class="funnel-search-clear fa fa-times-circle hidden-print"></a>';
+
+            html += '</div>';
+        }
+
+        if (steps[step]) {
+            var buttonIcon = 'fa-ellipsis-h', buttonType = 'btn-default';
+
+            if (step == report.state.activeStep) {
+                buttonIcon = 'fa-check';
+                buttonType = 'btn-info';
+            }
+
+            var maxHeight = 180, height = maxHeight, total = null, completionRate = 0;
+
+            if (reports[step] && reports[step].tableData && reports[0] && reports[0].tableData) {
+                var columnsStep0 = reports[0].columnEnum(reports[0].tableData);
+                var columns = reports[step].columnEnum(reports[step].tableData);
+
+                var usersStep0 = columnsStep0['users'], users = columns['users'];
+
+                if (usersStep0.total == 0 || users.total == 0)
+                    height = 1;
+                else if (step == 0)
+                    height = maxHeight;
+                else
+                    height = Math.round(users.total / usersStep0.total * maxHeight);
+
+                //  show completion rate
+                if (step == steps.length - 1 && users && users.hasOwnProperty('total')) {
+
+                    if (usersStep0.total > 0)
+                        completionRate = Math.round(users.total / usersStep0.total * 1000) / 10;
+
+                    $('#completion').html('&nbsp; Completion Rate:&nbsp; ' + completionRate + '%');
+                }
+
+            } else {
+                height = 1;
+            }
+
+            if (height == 0) height = 1;
+
+            html += '<div class="funnel-bar-container">' +
+                    '  <div class="funnel-bar-positioner">' +
+                    '    <div id="title-' + step +'" class="funnel-title">' + (users && users.hasOwnProperty('total') ? users.total : '') + '</div>' +
+                    '    <div onclick="setActiveStep(' + step + '); return false" id="bar-' + step +  '" class="funnel-bar" style="height:' + height + 'px">' +
+                    '    </div>' +
+                    '    <button onclick="setActiveStep(' + step + '); return false" id="button-' + step +  '" type="button" class="btn btn-w-m ' + buttonType + ' btn-sm btn-block funnel-button"><span class="fa ' + buttonIcon + '"></span></button>' +
+                    '  </div>' +
+                    '</div>';
+
+            if (step > 0) {
+                var rate = 0;
+
+                if (users && users.hasOwnProperty('total')) {
+
+                    if (reports[step - 1] && reports[step - 1].tableData) {
+
+                        var columnsLastStep = reports[step - 1].columnEnum(reports[step - 1].tableData);
+                        var usersLastStep = columnsLastStep['users'];
+
+                        if (usersLastStep && usersLastStep.total)
+                            rate = Math.round((1 - (users.total / usersLastStep.total)) * 1000) / 10;
+                    }
+
+                    html += '    <div class="funnel-arrow-container">' +
+                            '       <span id="rate-' + step + '" class="funnel-arrow-text"><span class="funnel-arrow fa fa-level-down"></span><br>' + rate + '%</span>' +
+                            '    </div>';
+                }
+            }
+        }
+
+        $('#step-' + step).html(html);
+
+        $('#input-' + step).typeahead('destroy');
+        $('#input-' + step).typeahead({
+                minLength: 0
+            }, {
+                name: 'kvs',
+                limit: 20,
+                source: matcher
+            }
+        );
+
+        $('#input-' + step).bind('typeahead:select', function(ev, suggestion) {
+            setStep(step, $('#input-' + step).val())
+        });
+
+        $('#input-' + step).bind('change', function(ev) {
+
+            if (!$('#input-' + step).val())
+                clearStep(step);
+            else
+                setStep(step, $('#input-' + step).val())
+        });
+    }
+
+    function setActiveStep(step) {
+        report.state.activeStep = step;
+
+        //  set active step UI
+        for (var i = 0; i < report.state.eventSteps.length; i++) {
+
+            if (i == step) {
+                $('#bar-' + i).removeClass('funnel-bar-inactive').addClass('funnel-bar-active');
+                $('#button-' + i).removeClass('btn-default').addClass('btn-info');
+                $('#button-' + i + ' span').removeClass('fa-ellipsis-h').addClass('fa-check');
+                $('#event-title').html('Event ' + (i + 1) + ': ' + report.state.eventSteps[i]);
+                $('#results-table-' + i).show();
+            } else {
+                $('#bar-' + i).removeClass('funnel-bar-active').addClass('funnel-bar-inactive');
+                $('#button-' + i).removeClass('btn-info').addClass('btn-default');
+                $('#button-' + i + ' span').removeClass('fa-check').addClass('fa-ellipsis-h');
+                $('#results-table-' + i).hide();
+            }
+        }
+        pushState();
+    }
+
+    function renderSteps(start) {
+
+        for (var i = start || 0; i < maxSteps; i++) {
+            renderStep(i);
+        }
+    }
+
+    function clearStep(step) {
+        var lastStep = step == report.state.eventSteps.length - 1;
+        $('#results-table-' + step).html('');
+        $('#event-title').html('');
+        report.state.eventSteps.splice(step, 1);
+        reports.splice(step, 1);
+
+        //  if clearing the last step, runQuery doesn't need to execute
+        if (lastStep)
+            renderSteps()
+        else
+            runQuery(step);
+
+        //  if the active step no longer exists, set it
+        if (report.state.activeStep > report.state.eventSteps.length - 1 && report.state.activeStep > 0)
+            report.state.activeStep--;
+
+        setActiveStep(report.state.activeStep);
+    }
+
+    $(document).ready(function() {
+
+        try {
+
+            suppressUpdates = true;
+
+            Toolbar.init(report);
+
+            Filter.init('filter-builder', report.settings.appId || 0, report.state.projectId || <%- req.session.currentProjectId %>, null, filterOptions);
+
+            //  'filter-builder' is part of the page and can cause updates
+            Filter.configureEmbeddedFilter('filter-builder');
+
+            //  Get options first by query string, then by definition, then by default
+            var options = Utils.getParam('options', window.location.search);
+
+            if (options) {
+                restoreState(JSON.parse(options));
+            } else {
+                setState();     //  set defaults
+            }
+
+            suppressUpdates = false;
+
+            runQuery();
+            setActiveStep(report.state.activeStep || 0);
+
+            //  Run query when form values are changed by the user - make sure they actually changed, since the change event fires for other reasons
+            var oldElements = $("#elements").val(), oldMetrics = $("#metrics").val();
+
+            elementSelectize[0].selectize.on('change', function() {
+
+                if ($("#elements").val() != oldElements) {
+                    oldElements = $("#elements").val();
+                    delete report.state.plotKeys;
+                    runQuery();
+                }
+            });
+
+            metricSelectize[0].selectize.on('change', function() {
+
+                if ($("#metrics").val() != oldMetrics) {
+                    oldMetrics = $("#metrics").val();
+                    runQuery();
+                }
+            });
+        } catch(err) {
+            Page.showMessage(err.message);
+        }
+    });
+
+    var matcher = function(query, sync, async) {
+        var url = '/search?attribute=eventName&projectId=' + $('#projects').val() + '&value=' + encodeURIComponent(query);
+
+        $.ajax(url, {
+                success: function(data, status){
+                    async(data);
+                }
+            }
+        );
+    };
+</script>
+</body>
+</html>
+	
