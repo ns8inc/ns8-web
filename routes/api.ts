@@ -41,7 +41,7 @@ export function setup(app: express.Application, application: IApplication, callb
         api.login(req.body['username'], req.body['password'], application.settings.appId, function(err, authObject) {
 
             if (!err)
-                req.session.auth = authObject;
+                api.setSessionAuth(req, authObject);
 
             api.REST.sendConditional(res, err, null, 'success');
         });
