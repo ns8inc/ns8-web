@@ -6,11 +6,11 @@
 //  proxy api-host calls through the web application
 var ApiProxy = {
 
-    call: function(verb, url, data, callback) {
+    call: function(verb, path, data, callback) {
 
         var params = {
             verb: verb,
-            url: url,
+            path: path,
             data: data
         };
 
@@ -31,23 +31,23 @@ var ApiProxy = {
         });
     },
 
-    post: function(url, data, callback) {
-        ApiProxy.call("POST", url, data, callback);
+    post: function(path, data, callback) {
+        ApiProxy.call("POST", path, data, callback);
     },
 
-    patch: function(url, data, callback) {
-        ApiProxy.call("PATCH", url, data, callback);
+    patch: function(path, data, callback) {
+        ApiProxy.call("PATCH", path, data, callback);
     },
 
-    put: function(url, data, callback) {
-        ApiProxy.call("PUT", url, data, callback);
+    put: function(path, data, callback) {
+        ApiProxy.call("PUT", path, data, callback);
     },
 
-    get: function(url, callback) {
-        ApiProxy.call("GET", url, null, callback);
+    get: function(path, callback) {
+        ApiProxy.call("GET", path, null, callback);
     },
 
-    del: function(url, callback) {
-        ApiProxy.call("DEL", url, null, callback);
+    del: function(path, callback) {
+        ApiProxy.call("DEL", path, null, callback);
     }
 };

@@ -22,7 +22,7 @@ export function setup(app: express.Application, application: IApplication, callb
     //  proxy client api calls to api-host
     app.post('/apiproxy', application.enforceSecure, api.authenticateNoRedirect, function (req: express.Request, res: express.Response) {
 
-        if (!req.body || !!req.body.verb || ! req.body.url) {
+        if (!req.body || !req.body.verb || !req.body.path) {
             api.REST.sendError(res, new api.errors.MissingParameterError());
         } else if (!req.session || !req.session.accessToken) {
             api.REST.sendError(res, new api.errors.UnauthorizedError());
@@ -31,31 +31,31 @@ export function setup(app: express.Application, application: IApplication, callb
             switch (req.body.verb.toUpperCase()) {
 
                 case 'DEL':
-                    api.client.del(req.body.url, function(err, apiRequest: restify.Request, apiResponse: restify.Response) {
+                    api.client.del(req.body.path, function(err, apiRequest: restify.Request, apiResponse: restify.Response) {
                         api.REST.sendConditional(res, err);
                     });
                     break;
 
                 case 'GET':
-                    client2.get(req.body.url, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    client2.get(req.body.path, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
 
                 case 'POST':
-                    api.client.post(req.body.url, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    api.client.post(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
 
                 case 'PATCH':
-                    api.client.patch(req.body.url, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    api.client.patch(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
 
                 case 'PUT':
-                    api.client.put(req.body.url, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    api.client.put(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
