@@ -8,15 +8,6 @@ import {IApplication} from "ns8-web";
  Set up routes - this script handles functions required for managing the API
  */
 
-let client2: restify.Client = restify.createJsonClient({
-    url: utils.config.settings()['apiUrl'],
-    version: '*',
-    signRequest: function(req) {
-        req.headers = req._headers;
-        req.setHeader('accessToken', 'we');
-    }
-});
-
 export function setup(app: express.Application, application: IApplication, callback) {
 
     //  proxy client api calls to api-host
@@ -24,38 +15,51 @@ export function setup(app: express.Application, application: IApplication, callb
 
         if (!req.body || !req.body.verb || !req.body.path) {
             api.REST.sendError(res, new api.errors.MissingParameterError());
-        } else if (!req.session || !req.session.accessToken) {
-            api.REST.sendError(res, new api.errors.UnauthorizedError());
         } else {
+
+            let clientParams: any = {
+                url: utils.config.settings()['apiUrl'],
+                version: '*'
+            };
+
+            //  For authenticated sessions, add the access token to the header.  This uses the bearer token method as described in https://tools.ietf.org/html/rfc6750.
+            //  rfc6750 does not require OAuth2 for this method, but this allows for future OAuth2 implementations to use the same strategy.
+            if (req.session && req.session.accessToken) {
+                clientParams.headers = {
+                    Authorization: 'Bearer ' + req.session.accessToken
+                };
+            }
+
+            let client: restify.Client = restify.createJsonClient(clientParams);
 
             switch (req.body.verb.toUpperCase()) {
 
                 case 'DEL':
-                    api.client.del(req.body.path, function(err, apiRequest: restify.Request, apiResponse: restify.Response) {
+                    client.del(req.body.path, function(err, apiRequest: restify.Request, apiResponse: restify.Response) {
                         api.REST.sendConditional(res, err);
                     });
                     break;
 
                 case 'GET':
-                    client2.get(req.body.path, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    client.get(req.body.path, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
 
                 case 'POST':
-                    api.client.post(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    client.post(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
 
                 case 'PATCH':
-                    api.client.patch(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    client.patch(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
 
                 case 'PUT':
-                    api.client.put(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                    client.put(req.body.path, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                         api.REST.sendConditional(res, err, result);
                     });
                     break;
