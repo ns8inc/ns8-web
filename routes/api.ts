@@ -17,15 +17,8 @@ export function setup(app: express.Application, application: IApplication, callb
             api.REST.sendError(res, new api.errors.MissingParameterError());
         } else {
 
-            api.REST.client.get('/v1/applications', function(err, req: restify.Request, res: restify.Response, result: any) {
-
-                if (err)                                //  first, check for an exception
-                    callback(err);
-                else if (!result)                       //  then check for a missing result
-                    callback(new api.errors.APIError());
-                else {
-                    callback(null);        //  finally, return the payload
-                }
+            api.REST.client.get(req.body.url, function(err, req: restify.Request, res: restify.Response, result: any) {
+                api.REST.sendConditional(res, err, result);
             });
         }
     });

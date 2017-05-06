@@ -7,7 +7,7 @@
 var ApiProxy = {
 
     get: function(url, successFunction, errorFunction) {
-        var params = {
+        var data = {
             verb: 'get',
             url: url,
         };
@@ -15,13 +15,14 @@ var ApiProxy = {
         $.ajax({
             type: "POST",
             cache: false,
+            data: data,
             url: '/apiproxy',
             success: function (data, textStatus, jqXHR) {
 
                 if (successFunction)
                     successFunction(data, textStatus, jqXHR);
             },
-            error: function (jqXHR, textStatus, errorThrown ) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 if (errorFunction)
                     errorFunction(data, textStatus, errorThrown);
             }
