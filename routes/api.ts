@@ -8,18 +8,61 @@ import {IApplication} from "ns8-web";
  Set up routes - this script handles functions required for managing the API
  */
 
+let client2: restify.Client = restify.createJsonClient({
+    url: utils.config.settings()['apiUrl'],
+    version: '*',
+    signRequest: function(req) {
+        req.headers = req._headers;
+        req.setHeader('accessToken', 'we');
+    }
+});
+
 export function setup(app: express.Application, application: IApplication, callback) {
 
     //  proxy client api calls to api-host
-    app.post('/apiproxy', application.enforceSecure, function (req: express.Request, res: express.Response) {
+    app.post('/apiproxy', application.enforceSecure, api.authenticateNoRedirect, function (req: express.Request, res: express.Response) {
 
-        if (!req.body.verb || ! req.body.url) {
+        if (!req.body || !!req.body.verb || ! req.body.url) {
             api.REST.sendError(res, new api.errors.MissingParameterError());
+        } else if (!req.session || !req.session.accessToken) {
+            api.REST.sendError(res, new api.errors.UnauthorizedError());
         } else {
 
-            api.REST.client.get(req.body.url, function(err, restifyReq: restify.Request, restifyRes: restify.Response, result: any) {
-                api.REST.sendConditional(restifyRes, err, result);
-            });
+            switch (req.body.verb.toUpperCase()) {
+
+                case 'DEL':
+                    api.client.del(req.body.url, function(err, apiRequest: restify.Request, apiResponse: restify.Response) {
+                        api.REST.sendConditional(res, err);
+                    });
+                    break;
+
+                case 'GET':
+                    client2.get(req.body.url, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                        api.REST.sendConditional(res, err, result);
+                    });
+                    break;
+
+                case 'POST':
+                    api.client.post(req.body.url, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                        api.REST.sendConditional(res, err, result);
+                    });
+                    break;
+
+                case 'PATCH':
+                    api.client.patch(req.body.url, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                        api.REST.sendConditional(res, err, result);
+                    });
+                    break;
+
+                case 'PUT':
+                    api.client.put(req.body.url, req.body.data, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                        api.REST.sendConditional(res, err, result);
+                    });
+                    break;
+
+                default:
+                    api.REST.sendError(res, new api.errors.BadRequestError('No such verb'));
+            }
         }
     });
 
