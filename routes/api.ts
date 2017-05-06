@@ -10,6 +10,18 @@ import {IApplication} from "ns8-web";
 
 export function setup(app: express.Application, application: IApplication, callback) {
 
+    app.post('/api/', application.enforceSecure, function (req: express.Request, res: express.Response) {
+
+        //  specifying the appId will pull the user's account object into the authObject
+        api.login(req.body['username'], req.body['password'], application.settings.appId, function(err, authObject) {
+
+            if (!err)
+                req.session.auth = authObject;
+
+            api.REST.sendConditional(res, err, null, 'success');
+        });
+    });
+
     app.get('/developer/rest/:id', application.enforceSecure, function (req: express.Request, res: express.Response) {
 
         res.render('./developer/swagger', {
