@@ -10,16 +10,24 @@ import {IApplication} from "ns8-web";
 
 export function setup(app: express.Application, application: IApplication, callback) {
 
-    app.post('/api/', application.enforceSecure, function (req: express.Request, res: express.Response) {
+    //  proxy client api calls to api-host
+    app.post('/apiproxy', application.enforceSecure, function (req: express.Request, res: express.Response) {
 
-        //  specifying the appId will pull the user's account object into the authObject
-        api.login(req.body['username'], req.body['password'], application.settings.appId, function(err, authObject) {
+        if (!req.body.verb || ! req.body.url) {
+            api.REST.sendError(res, new api.errors.MissingParameterError());
+        } else {
 
-            if (!err)
-                req.session.auth = authObject;
+            api.REST.client.get('/v1/applications', function(err, req: restify.Request, res: restify.Response, result: any) {
 
-            api.REST.sendConditional(res, err, null, 'success');
-        });
+                if (err)                                //  first, check for an exception
+                    callback(err);
+                else if (!result)                       //  then check for a missing result
+                    callback(new api.errors.APIError());
+                else {
+                    callback(null);        //  finally, return the payload
+                }
+            });
+        }
     });
 
     app.get('/developer/rest/:id', application.enforceSecure, function (req: express.Request, res: express.Response) {
