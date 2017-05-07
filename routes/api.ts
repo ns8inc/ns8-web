@@ -59,11 +59,32 @@ export function setup(app: express.Application, application: IApplication, callb
 
     app.get('/developer/rest/:id', application.enforceSecure, function (req: express.Request, res: express.Response) {
 
-        res.render('./developer/swagger', {
-            req: req,
-            application: application,
-            dev: utils.config.dev(),
-            spec: utils.config.settings().apiUrl + '/' + utils.config.settings().apiVersion + '/' + req.params['id'] + '.js'
+        let specUrl = utils.config.settings().apiUrl + '/' + utils.config.settings().apiVersion + '/' + req.params['id'] + '.json';
+
+        utils.getUrlText(specUrl, (err, spec) => {
+
+            if (err)
+                spec = {};
+            else {
+
+                try {
+                    spec = JSON.parse(spec);
+                } catch(err) {
+                    spec = {};
+                }
+            }
+
+            if (req.query.env == 'local') {
+                spec.host = '127.0.0.5:8080';
+                spec.schemes = [ 'http' ];
+            }
+
+            res.render('./developer/swagger', {
+                req: req,
+                application: application,
+                dev: utils.config.dev(),
+                spec: spec
+            });
         });
     });
 
