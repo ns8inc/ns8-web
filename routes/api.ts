@@ -17,20 +17,7 @@ export function setup(app: express.Application, application: IApplication, callb
             api.REST.sendError(res, new api.errors.MissingParameterError());
         } else {
 
-            let clientParams: any = {
-                url: utils.config.settings()['apiUrl'],
-                version: '*'
-            };
-
-            //  For authenticated sessions, add the access token to the header.  This uses the bearer token method as described in https://tools.ietf.org/html/rfc6750.
-            //  rfc6750 does not require OAuth2 for this method, but this allows for future OAuth2 implementations to use the same strategy.
-            if (req.session && req.session.accessToken) {
-                clientParams.headers = {
-                    Authorization: 'Bearer ' + req.session.accessToken
-                };
-            }
-
-            let client: restify.Client = restify.createJsonClient(clientParams);
+            let client = api.sessionClient(req);
 
             switch (req.body.verb.toUpperCase()) {
 
