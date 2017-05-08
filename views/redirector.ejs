@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/master/header %>
+</head>
+<body>
+Redirecting to <%- url %>...
+<script>
+
+    //  wait for page to load, then redirect
+    $(document).ready(function() {
+        window.location = '<%- url %>';
+    });
+</script>
+</body>
+</html>
