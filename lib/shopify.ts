@@ -124,17 +124,31 @@ export function uninstall(application, req, res, callback: (err?: api.errors.API
  */
 export function renderCookiesIssue(application, req, res) {
 
-    //  get the shop from the referrer
-    let shop = url.parse(req.header('referrer')).host;
-    let returnUrl = 'https://' + shop + '/admin/apps/';
+    //  look for the shop in the referrer - if it's not there, this page was accessed incorrectly
+    if (!req || !req.headers || !req.header('referrer')) {
 
-    res.render('./api/login', {
-        returnUrl: returnUrl,
-        settings: utils.config.settings(),
-        application: application,
-        req: req,
-        dev: utils.config.dev()
-    });
+        res.render('message', {
+            title: 'Error',
+            message: 'Please re-launch the app',
+            settings: utils.config.settings(),
+            application: application,
+            req: req,
+            dev: utils.config.dev()
+        });
+    } else {
+
+        //  get the shop from the referrer
+        let shop = url.parse(req.header('referrer')).host;
+        let returnUrl = 'https://' + shop + '/admin/apps/';
+
+        res.render('./api/login', {
+            returnUrl: returnUrl,
+            settings: utils.config.settings(),
+            application: application,
+            req: req,
+            dev: utils.config.dev()
+        });
+    }
 }
 
 /**
