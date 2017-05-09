@@ -209,7 +209,9 @@ function Report() {
                             runningQueries--;
                             Page.doneLoading();
 
-                            if (result && result.status == 404) {
+                            if (result && result.status == 0) {
+                                // 0 usually means request not sent, so do nothing
+                            } else if (result && result.status == 404) {
                                 Page.alert('Not Found', 'No data has been tracked yet for this project.', 'info');
                             } else if (result && (result.status == 419 || result.status == 401)) {
                                 window.location = '/login';
