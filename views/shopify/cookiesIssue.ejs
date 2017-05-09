@@ -1,0 +1,8 @@
+<h1>One more step...</h1>
+You are using a browser that requires your permission for us to set session cookies.  Please click on the button
+below to proceed.
+<br><br>
+<a id="approveLink" target= "_top" class="btn btn-lg btn-primary" href="/cookiesapproved">Allow cookies</a>
+<script>
+    $('#approveLink').attr('href', '/cookiesapproved?returnurl=' + encodeURIComponent('<%- returnUrl %>'));
+</script>

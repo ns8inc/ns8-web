@@ -1,16 +1,26 @@
 import utils = require("ns8-utils");
 import api = require("ns8-api");
+import url = require('url');
 
 /*
     Shopify OAuth and API helpers
  */
 
-//  the API host Shopify should use.  In local mode, it is an Ngrok tunnel to the development machine
+/**
+ * The API host Shopify should use.  In local mode, it is an Ngrok tunnel to the development machine.
+ * @returns {string}
+ */
 export function apiHost(): string {
     return utils.config.env() == 'local' ? 'https://api-host.ngrok.io' : utils.config.settings().apiUrl;
 }
 
-//  Launch a Shopify app.  Return whether app launch/login was successful.  Possible outcomes are errors, an OAuth redirect or success.
+/**
+ * Launch a Shopify app.  Return whether app launch/login was successful.  Possible outcomes are errors, an OAuth redirect or success.
+ * @param application
+ * @param req
+ * @param res
+ * @param callback
+ */
 export function launch(application, req, res, callback?: (launched: boolean) => void) {
 
     let params = {
@@ -54,6 +64,13 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
     });
 }
 
+/**
+ * Call API to install an app.
+ * @param application
+ * @param req
+ * @param res
+ * @param callback
+ */
 export function install(application, req, res, callback: (err?: api.errors.APIError) => void) {
 
     let params = {
@@ -75,6 +92,13 @@ export function install(application, req, res, callback: (err?: api.errors.APIEr
     });
 }
 
+/**
+ * Call API to uninstall an app.
+ * @param application
+ * @param req
+ * @param res
+ * @param callback
+ */
 export function uninstall(application, req, res, callback: (err?: api.errors.APIError) => void) {
 
     let params = {
@@ -86,5 +110,46 @@ export function uninstall(application, req, res, callback: (err?: api.errors.API
     //  perform uninstall
     api.REST.client.post('/v1/shopify/uninstall', params, function (err, apiRequest, apiResponse, result) {
         callback(err);
+    });
+}
+
+/**
+ * The only time a user should get to here is if they are running a browser that does not accept cookies in an iframe,
+ * like Safari.  Therefore, we can't track session state.  The only way to fix this is to get the domain whitelisted by
+ * the user (not through code) launching a window that sets a cookie.  So, this page explains the situation.
+ *
+ * @param application
+ * @param req
+ * @param res
+ */
+export function renderCookiesIssue(application, req, res) {
+
+    //  get the shop from the referrer
+    let shop = url.parse(req.header('referrer')).host;
+    let returnUrl = 'https://' + shop + '/admin/apps/';
+
+    res.render('./api/login', {
+        returnUrl: returnUrl,
+        settings: utils.config.settings(),
+        application: application,
+        req: req,
+        dev: utils.config.dev()
+    });
+}
+
+/**
+ * Display the approved page, which redirects to the user's apps to relaunch the app.
+ * @param application
+ * @param req
+ * @param res
+ */
+export function renderCookiesApproval(application, req, res) {
+
+    res.render('./api/cookiesApproved', {
+        returnUrl: req.query.returnurl,
+        settings: utils.config.settings(),
+        application: application,
+        req: req,
+        dev: utils.config.dev()
     });
 }
