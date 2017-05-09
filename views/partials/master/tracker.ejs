@@ -1,5 +1,5 @@
 <script type="text/javascript">
-<% if (process.env['NODE_ENV'] != 'local') { %>
+
     if (!Aggregator){var Aggregator=function(o){
         var d=document,p=Aggregator.prototype;this.options=o;this.q=[];d.cookie='__na_c=1';p.p=function(c){return function(){
             this.q.push([c,arguments])}};p.setPerson=p.p(4,arguments);p.logEvent=p.p(0,arguments);p.logPageview=p.p(1,arguments);
@@ -15,7 +15,6 @@
         "projectId": "<%- application.trackingProjectId %>"
     });
     gator.logPageview();
-<% } %>
 
 <% if (application.GATrackingId) { %>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
