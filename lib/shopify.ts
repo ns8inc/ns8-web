@@ -45,16 +45,7 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
                 else
                     req['session'].projects = result.data.projects;
 
-
-                //  use redirector page to prevent loss of session on some browsers
-                res.render('redirector',{
-                    settings: utils.config.settings(),
-                    application: application,
-                    req: req,
-                    url: application.branding.postLoginUrl
-                });
-
-                //res.redirect(application.branding.postLoginUrl);
+                res.redirect(application.branding.postLoginUrl);
 
                 if (callback)
                     callback(true);

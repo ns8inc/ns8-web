@@ -1,21 +1,5 @@
 <script type="text/javascript">
-<% if (process.env['NODE_ENV'] == 'local') { %>
-    if (!Aggregator){var Aggregator=function(o){
-        var d=document,p=Aggregator.prototype;this.options=o;this.q=[];d.cookie='__na_c=1';p.p=function(c){return function(){
-            this.q.push([c,arguments])}};p.setPerson=p.p(4,arguments);p.logEvent=p.p(0,arguments);p.logPageview=p.p(1,arguments);
-        p.ready=p.p(2,arguments);p.logOutbound=p.p(3,arguments);p.updatePerson=p.p(5,arguments);p.updateSession=p.p(6,arguments);
-        p.updateEvent=p.p(7,arguments);p.push=p.p(8,arguments);var s=d.createElement('script');s.type='text/javascript';s.async=true;
-        (function(i){s.onreadystatechange=function(){if(s.readyState=='loaded'||s.readyState=='complete'){i.run();}};
-            s.onload=function(){i.run();}})(this);s.src='http'+(location.protocol=='https:'?'s:'+'//127.0.0.5:8080':
-                ':'+'//127.0.0.5:8080').replace('{0}',o.projectId)+'/web?'+
-                Math.floor((new Date()*.00001)/36);var e=d.getElementsByTagName('script')[0];e.parentNode.insertBefore(s,e);
-    }}
-
-    var gator = new Aggregator({
-        "projectId": "<%- application.trackingProjectId %>"
-    });
-    //gator.logPageview();
-<% } else { %>
+<% if (process.env['NODE_ENV'] != 'local') { %>
     if (!Aggregator){var Aggregator=function(o){
         var d=document,p=Aggregator.prototype;this.options=o;this.q=[];d.cookie='__na_c=1';p.p=function(c){return function(){
             this.q.push([c,arguments])}};p.setPerson=p.p(4,arguments);p.logEvent=p.p(0,arguments);p.logPageview=p.p(1,arguments);
