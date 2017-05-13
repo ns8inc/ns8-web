@@ -20,11 +20,11 @@
             </div>
             <div class="col-lg-6">
                 <br><label>To install this app, enter your shop name:</label>
-                <form class="form-inline">
+                <form class="form-inline" onsubmit="createAuthLink(); return false;">
                     <div class="form-group">
                         <input name="shop" id="shop" placeholder="Enter shop..." class="form-control" style="min-width:350px"/>
                     </div>
-                    <button onclick="createAuthLink(); return false;" type="button" class="btn btn-primary btn-md">Get Authorization Link</button>
+                    <button type="submit" class="btn btn-primary btn-md">Get Authorization Link</button>
                 </form>
                 <div id="link"></div>
             </div>
@@ -50,7 +50,7 @@
             },
             redirect_uri: redirect
         };
-
+console.dir(params);
         $.ajax({
             type: "POST",
             data: params,
