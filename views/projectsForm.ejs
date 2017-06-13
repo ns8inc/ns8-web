@@ -47,6 +47,8 @@
                             <br>Pick a project type.  This determines how menus and other user interface elements are displayed.  This can be changed at any time.
                             <br><br><input name="projectType" type="radio" value="0" checked>&nbsp; <label>DMP</label>
                         </div>
+                        <input type="checkbox" name="crossDomain" id="crossDomain" />&nbsp; <label>Track Users Across Domains</label> - If you plan on tracking
+                            users across domains, select this option.  This will use a different method for tracking users, so only select this option if you need cross domain support.
                         <div>
                             <button onclick="submitForm(); return false" class="btn btn-md btn-primary" type="submit"><span id="projectSubmit">Create</span></button>
                             <br><br><br><br><br><br><br>
@@ -67,6 +69,10 @@
     function setFormData() {
 
         if (dataObj && dataObj.name) {
+
+            if (dataObj.crossDomain)
+                $('#crossDomain').prop('checked', true);
+
             $('#title').html('Edit Project');
             $('#projectName').val(dataObj.name);
             $('input:radio[name=projectType]').val([dataObj.type]);
@@ -79,7 +85,8 @@
     function getFormData() {
         var params = {
             name: $('#projectName').val(),
-            type: +$('input[name=projectType]:checked').val()
+            type: +$('input[name=projectType]:checked').val(),
+            crossDomain: $('#crossDomain').is(':checked')
         };
 
         if (dataObj)

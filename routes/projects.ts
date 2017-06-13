@@ -94,7 +94,8 @@ export function setup(app: express.Application, application: IApplication, callb
         let params = {
             accessToken: req['session'].accessToken,
             name: req.body.name,
-            type: +req.body.type
+            type: +req.body.type,
+            crossDomain: req.body.crossDomain
         };
 
         api.REST.client.post('/v1/projects', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
@@ -127,6 +128,7 @@ export function setup(app: express.Application, application: IApplication, callb
             name: req.body.name,
             type: +req.body.type,
             enabled: req.body.enabled
+
         };
 
         api.REST.client.put('/v1/projects', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
