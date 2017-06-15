@@ -18,6 +18,11 @@ export function setup(app: express.Application, application: IApplication, callb
     app.get('/setup/campaignreferrers/:projectId', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
         utils.noCache(res);
 
+        let projectId = req.params.projectId;
+
+        if (projectId == 'current')
+            projectId = req.session.currentProjectId;
+
         //  always refresh the project list here, since all edits redir back here
         api.REST.client.get('/v1/projects?accessToken=' + req['session']['accessToken'], function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
@@ -26,7 +31,7 @@ export function setup(app: express.Application, application: IApplication, callb
             else
                 req['session'].projects = result.data.projects;
 
-            var project = api.getProject(req, +req.params.projectId);
+            let project = api.getProject(req, +projectId);
 
             res.render('campaignReferrers', {
                 application: application,
@@ -40,9 +45,14 @@ export function setup(app: express.Application, application: IApplication, callb
     //  update existing data
     app.put('/setup/campaignreferrers/:projectId', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
 
-        var project = api.getProject(req, +req.params.projectId);
+        let projectId = req.params.projectId;
 
-        var params = {
+        if (projectId == 'current')
+            projectId = req.session.currentProjectId;
+
+        let project = api.getProject(req, +projectId);
+
+        let params = {
             accessToken: req['session'].accessToken,
             projectId: project.id,
             campaignReferrers: req.body.campaignReferrers
@@ -62,6 +72,11 @@ export function setup(app: express.Application, application: IApplication, callb
     app.get('/setup/campaignids/:projectId', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
         utils.noCache(res);
 
+        let projectId = req.params.projectId;
+
+        if (projectId == 'current')
+            projectId = req.session.currentProjectId;
+
         //  always refresh the project list here, since all edits redir back here
         api.REST.client.get('/v1/projects?accessToken=' + req['session']['accessToken'], function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
@@ -70,7 +85,7 @@ export function setup(app: express.Application, application: IApplication, callb
             else
                 req['session'].projects = result.data.projects;
 
-            var project = api.getProject(req, +req.params.projectId);
+            let project = api.getProject(req, +projectId);
 
             res.render('campaignIds',{
                 application: application,
@@ -83,9 +98,15 @@ export function setup(app: express.Application, application: IApplication, callb
 
     //  update existing data
     app.put('/setup/campaignids/:projectId', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
-        var project = api.getProject(req, +req.params.projectId);
 
-        var params = {
+        let projectId = req.params.projectId;
+
+        if (projectId == 'current')
+            projectId = req.session.currentProjectId;
+
+        let project = api.getProject(req, +projectId);
+
+        let params = {
             accessToken: req['session'].accessToken,
             projectId: project.id,
             campaignIds: req.body.campaignIds.split(',')

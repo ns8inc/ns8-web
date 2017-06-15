@@ -137,6 +137,10 @@ declare module 'ns8-web' {
             export function setup(app, application, callback);
         }
 
+        module campaignRoutes {
+            export function setup(app, application, callback);
+        }
+
         module reportingRoutes {
             export function setup(app, application, callback);
             export function getReport(application, req, res);
