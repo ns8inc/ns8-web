@@ -1,0 +1,40 @@
+<script type="text/javascript">
+    jQuery(function($) {
+        $('#prepayment-form').submit(function(event) {
+
+            var amount = $('#amount').val();
+
+            if (amount.substr(0, 1) == '$')
+                amount = amount.substr(1);
+
+            if (!Utils.isNumber(amount)) {
+                Page.showMessage('You must enter a numeric value without currency symbols. All amounts are in USD.');
+            } else {
+
+                Page.confirm('Are you sure?', 'Prepay ' + amount + ' (USD) from your primary payment method?', function() {
+
+                    var $form = $(this);
+
+                    // Disable the submit button to prevent repeated clicks
+                    $form.find('button').prop('disabled', true);
+
+                    $.ajax({
+                        type: "POST",
+                        url: '/billing/prepay',
+                        data: { amount: amount },
+                        success: function (data, status) {
+                            location.href = '/billing/payments';
+                        },
+                        error: function (request, status, error) {
+                            $('#modal-create').modal('hide');
+                            Data.showError(request, status, error);
+                        }
+                    });
+                });
+            }
+            return false;
+
+        });
+    });
+
+</script>

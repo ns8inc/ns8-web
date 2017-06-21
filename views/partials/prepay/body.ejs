@@ -1,0 +1,28 @@
+<h1 id="title">Authorize Prepayment</h1>
+Prepayments will use your primary payment method.  Prepayments create a credit on your account that is used for future invoices.
+<% if (application.current && application.current.minimumPrepay) { %>
+<br><br>The minimum prepayment amount is $<%-application.current.minimumPrepay %> (USD).</b>
+<% } %>
+<br><br><b>By prepaying, your account will be credited an extra 10% of the amount of the prepayment.</b>
+<br><br>
+
+<% if (paymentMethodCount == 0) { %>
+You must first set up a payment method before you can prepay.  <a href="/billing/paymentmethods">Click here</a> to set up a payment method.
+<% } else { %>
+
+<form action="" method="POST" id="prepayment-form">
+    <div id="error-box" class="row hidden">
+        <div class="col-lg-8">
+            <div class="alert alert-danger">
+                <span class="payment-errors"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group"><label>Prepayment Amount (USD)</label>
+        <input class="form-control" type="text" style="width:200px" name="amount" id="amount" />
+    </div>
+
+    <br><button class="btn btn-md btn-primary m-t-n-xs" type="submit">Submit</button>
+</form>
+<% } %>

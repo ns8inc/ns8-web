@@ -1,0 +1,45 @@
+<%
+
+var html = '<h1>Payment Methods</h1><table class="table table-hover">' +
+        '<br><button class="btn btn-sm btn-primary m-t-n-xs" onclick="window.location=\'/billing/paymentmethods/form\'"><strong>Add new payment method</strong></button><br><br>';
+
+html += '<thead><tr>';
+html += '<th>Type</th>';
+html += '<th>Last 4 Digits</th>';
+html += '<th>Expiration</th>';
+html += '<th>Action</th>';
+html += '</tr></thead>';
+
+html += '<tbody>';
+
+if (cards) {
+
+    for (var m = 0; m < cards.length; m++) {
+        var card = cards[m];
+
+        html += '<tr>';
+        html += '<td>' + card.brand + '</td>';
+        html += '<td>' + card.last4 + '</td>';
+        html += '<td>' + card.exp_month + ' / ' + card.exp_year + '</td>';
+
+        if (cards.length <= 1) {
+            html += '<td><strong>PRIMARY</strong></td>';
+        } else {
+
+            html += '<td><button onclick="deleteRow(\'' + card.id + '\'); return false" type="button" class="btn btn-delete btn-xs">Delete</button>&nbsp; ';
+
+            if (card.id == customer.default_source)
+                html += '<strong>PRIMARY</strong>';
+            else
+                html += '<button onclick="makePrimary(\'' + card.id + '\'); return false" type="button" class="btn btn-delete btn-xs">Make Primary</button>';
+
+            html += '</td>';
+        }
+
+        html += '</tr>';
+    }
+}
+html += '</tbody>';
+html += '</table>';
+%>
+<%- html %>

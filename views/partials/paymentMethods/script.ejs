@@ -1,0 +1,39 @@
+<script>
+    function deleteRow(id) {
+
+        Page.confirm('Are you sure?', 'Delete payment method?', function() {
+
+            $.ajax({
+                type: "DELETE",
+                url: '/billing/paymentmethods/',
+                data: { id: id },
+                success: function (data, status) {
+                    location.reload();
+                },
+                error: function (request, status, error) {
+                    $('#modal-create').modal('hide');
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+
+    function makePrimary(id) {
+
+        Page.confirm('Are you sure?', 'Make primary?', function() {
+
+            $.ajax({
+                type: "PUT",
+                url: '/billing/paymentmethods/primary',
+                data: { id: id },
+                success: function (data, status) {
+                    location.reload();
+                },
+                error: function (request, status, error) {
+                    $('#modal-create').modal('hide');
+                    Data.showError(request, status, error);
+                }
+            });
+        });
+    }
+</script>
