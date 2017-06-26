@@ -1654,6 +1654,7 @@ Report.explainQuery = function(json) {
 
     text = JSON.stringify(json);
 
+    text = Utils.replaceAll(text, '"\\$nin":', 'not in ');
     text = Utils.replaceAll(text, '"\\$in":', 'in ');
     text = Utils.replaceAll(text, '"\\$eq":', '= ');
     text = Utils.replaceAll(text, '"\\$ne":', 'not equal to ');
