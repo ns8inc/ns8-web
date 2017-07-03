@@ -106,6 +106,9 @@ export function getReport(application, req, res) {
     if (typeof definition.initialState.filter == 'function')
         definition.initialState.filter = definition.initialState.filter(application, req);
 
+    if (typeof definition.initialState.match == 'function')
+        definition.initialState.match = definition.initialState.match(application, req);
+
     //  override options from definition with query string params
     if (req.query.options) {
 

@@ -93,6 +93,7 @@ function Report() {
         sort: null,
         segments: null,
         filter: null,
+        match: null,
         customSegments: null,
         customCount: null,
         tableOrder: null,
@@ -357,6 +358,9 @@ Report.prototype.getBaseQuery = function() {
 
     if (state.filter)
         query['filter'] = state.filter;
+
+    if (state.match)
+        query['match'] = state.match;
 
     if (state.having)
         query['having'] = state.having;
