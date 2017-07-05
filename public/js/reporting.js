@@ -1644,7 +1644,7 @@ Report.prototype.setPlotKeys = function() {
 };
 
 //  Turn a JSON query object into a string that is more readable
-Report.explainQuery = function(json) {
+Report.explainQuery = function(json, attributes) {
     var text;
 
     if (typeof json == 'string')
@@ -1657,6 +1657,14 @@ Report.explainQuery = function(json) {
         json = json['$or'][0];
 
     text = JSON.stringify(json);
+
+    if (attributes) {
+
+        for (let i = 0; i < attributes.length; i++) {
+            var attrib = attributes[i];
+            text = Utils.replaceAll(text, '"' + attrib.name + '":', attrib.title + ' ');
+        }
+    }
 
     text = Utils.replaceAll(text, '"\\$nin":', 'not in ');
     text = Utils.replaceAll(text, '"\\$in":', 'in ');
