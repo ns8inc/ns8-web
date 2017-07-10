@@ -1660,7 +1660,7 @@ Report.explainQuery = function(json, attributes) {
 
     if (attributes) {
 
-        for (let i = 0; i < attributes.length; i++) {
+        for (var i = 0; i < attributes.length; i++) {
             var attrib = attributes[i];
             text = Utils.replaceAll(text, '"' + attrib.name + '":', attrib.title + ' ');
         }
