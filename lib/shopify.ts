@@ -40,6 +40,7 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
                 callback(false);
 
         } else if (err) {
+            api.log('/v1/shopify/launch', err, params, result);
             res.sendStatus(500);
 
             if (callback)
