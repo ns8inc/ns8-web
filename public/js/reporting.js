@@ -1674,7 +1674,7 @@ Report.explainQuery = function(json, attributes) {
     text = Utils.replaceAll(text, '"\\$gte":', '>= ');
     text = Utils.replaceAll(text, '"\\$lt":', '< ');
     text = Utils.replaceAll(text, '"\\$lte":', '<= ');
-    text = Utils.replaceAll(text, '"\\$regex":', 'contains ');
+    text = Utils.replaceAll(text, '"\\$regex":', 'matches ');
 
     text = Utils.replaceAll(text, '\\$', '');
     text = Utils.replaceAll(text, '{', '');
