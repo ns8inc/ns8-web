@@ -14,8 +14,6 @@
 
     var segmentsSelectize, customCount = 0, customSegments, suppressUpdates = false, title;
 
-    $('#page-title').html(report.settings.title);
-
     var metricSelectize = $('#metrics').selectize({
         options: <%- JSON.stringify(metricOptions) %>,
         items: Utils.replaceAll(report.state.attributes, ' ', '').split(','),
@@ -231,8 +229,8 @@
         else
             Filter.reset('filter-builder');
 
-        if (report.settings.title)
-            $('#page-title').html(report.settings.title);
+        if (report.state.title || report.settings.title)
+            $('#page-title').html(report.state.title || report.settings.title);
 
         Toolbar.setValues(state.dateLabel, state.dateStart, state.dateEnd, state.dateInterval);
         Toolbar.draw();

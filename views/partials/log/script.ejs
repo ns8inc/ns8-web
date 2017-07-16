@@ -135,8 +135,8 @@
         else
             Filter.reset('filter-builder');
 
-        if (report.settings.title)
-            $('#page-title').html(report.settings.title);
+        if (report.state.title || report.settings.title)
+            $('#page-title').html(report.state.title || report.settings.title);
 
         if (state.map)
             $('#world-map').removeClass('hidden');
