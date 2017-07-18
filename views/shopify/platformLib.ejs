@@ -1,0 +1,191 @@
+<% if (!req.session.adminMode) { %>
+<script src="https://cdn.shopify.com/s/assets/external/app.js"></script>
+<script type="text/javascript">
+
+    ShopifyApp.init({
+        apiKey: '<%- application.current.shopifyApiKey %>',
+        shopOrigin: 'https://<%- req.session ? req.session.user.name : '' %>'
+    });
+
+    var PlatformLib = ShopifyApp;
+</script>
+
+<% } else { %>
+
+<script>
+    var PlatformLib = {
+        Bar: {
+            initialize: function(options) {
+                //  this routine will place the buttons in the element with id 'platformBarItems'
+                if (!options)
+                    return;
+
+                if (options.title)
+                    $('#platformTitle').html(title);
+
+                if (options.icon)
+                    $('#platformBarIcon').html('<img style="width: 20px; height:20px; margin-top: -4px;margin-right: 10px" src="' + options.icon + '">');
+
+                if (options.buttons) {
+                    let buttonsHtml = '';
+
+                    if (options.buttons.secondary) {
+
+                        for (var i = 0; i < options.buttons.secondary.length; i++) {
+                            buttonsHtml += PlatformLib.Bar.getButtonHtml('btn-info', options.buttons.secondary[i]);
+                        }
+                    }
+
+                    if (options.buttons.primary) {
+
+                        for (var i = 0; i < options.buttons.primary.length; i++) {
+                            buttonsHtml += PlatformLib.Bar.getButtonHtml('btn-primary', options.buttons.primary[i]);
+                        }
+                    }
+
+                    $('#platformBarItems').html(buttonsHtml);
+                }
+            },
+            getButtonHtml: function(cssClass, button) {
+                var html = '';
+
+                if (button.type === 'dropdown') {
+
+                    html += '<span class="dropdown">' +
+                        '  <button class="btn ' + cssClass + ' dropdown-toggle" type="button" data-toggle="dropdown">' + button.label +
+                        '  <span class="caret"></span></button>' +
+                        '  <ul class="dropdown-menu">';
+
+                    for (var i = 0; i < button.links.length; i++) {
+                        if (button.links[i].target === 'new')
+                            html += '<li><a target="_new" href="' + button.links[i].href + '">' + button.links[i].label + '</a></li>';
+                        else if (button.links[i].target === 'app')
+                            html += '<li><a href="javascript:alert(\'Cannot navigate to app from admin mode\')">' + button.links[i].label + '</a></li>';
+                        else
+                            html += '<li><a href="' + button.links[i].href + '">' + button.links[i].label + '</a></li>';
+                    }
+                    html += '  </ul>' +
+                        '</span>';
+                } else {
+                    if (button.target === 'new')
+                        html += '<a target="_new" class="btn ' + cssClass + '" href="' + button.href + '">' + button.label + '</a>';
+                    else if (button.target === 'app')
+                        html += '<a class="btn ' + cssClass + '" href="javascript:alert(\'Cannot navigate to app from admin mode\')">' + button.label + '</a>';
+                    else
+                        html += '<a class="btn ' + cssClass + '" href="' + button.href + '">' + button.label + '</a>';
+                }
+                return html;
+            },
+            setTitle: function(title) {
+                $('#platformTitle').html(title);
+            },
+            setIcon: function() {},
+            setPagination: function() {},
+            setBreadcrumb: function() {},
+            loadingOff: function() {},
+            loadingOn: function() {}
+        },
+        flashError: function(message) {
+            toastr.options.closeButton = true;
+            toastr.options.positionClass = "toast-bottom-center";
+            toastr.error(message);
+        },
+        flashNotice: function(message) {
+            toastr.options.closeButton = true;
+            toastr.options.positionClass = "toast-bottom-center";
+            toastr.info(message);
+        },
+        pushState: function() {},
+        ready: function(callback) {
+            $(document).ready(callback);
+        },
+        redirect: function(path) {
+            alert("Can't redirect to app page in admin mode.");
+        },
+        Modal: {
+            alert: function(message, callback) {
+                swal({
+                        title: "Alert",
+                        text: message,
+                        type: "warning",
+                        closeOnConfirm: true
+                    },
+                    function() {
+                        if (typeof callback === 'function')
+                            callback();
+                    });
+            },
+            confirm: function(options, callback) {
+                if (typeof options === 'object') {
+
+                    swal({
+                            title: options.title || 'Confirm',
+                            text: options.message,
+                            showCancelButton: true,
+                            closeOnConfirm: true,
+                            confirmButtonText: options.okButton || 'OK',
+                            cancelButtonText: options.cancelButton || 'Cancel',
+                        },
+                        function() {
+                            if (typeof callback === 'function')
+                                callback(true);
+                        });
+                } else {
+
+                    swal({
+                            title: 'Confirm',
+                            text: options,
+                            showCancelButton: true,
+                            closeOnConfirm: true
+                        },
+                        function() {
+                            if (typeof callback === 'function')
+                                callback(true);
+                        });
+                }
+            },
+            input: function(options, callback) {
+                if (typeof options === 'object') {
+
+                    swal({
+                            type: "input",
+                            title: options.title || 'Input',
+                            text: options.message,
+                            showCancelButton: true,
+                            closeOnConfirm: true,
+                            confirmButtonText: options.okButton || 'OK',
+                            cancelButtonText: options.cancelButton || 'Cancel',
+                        },
+                        function(inputValue) {
+                            if (typeof callback === 'function')
+                                callback(inputValue);
+                        });
+                } else {
+                    swal({
+                            title: 'Input',
+                            text: options,
+                            type: "input",
+                            showCancelButton: true,
+                            closeOnConfirm: true
+                        },
+                        function(inputValue) {
+                            if (typeof callback === 'function')
+                                callback(inputValue);
+                        });
+                }
+            },
+            close: function(result, data) {},
+            setHeight: function(height) {},
+            open: function(init, callback) {
+                PlatformLib.flashNotice('Open modal not yet supported in platform library');
+            }
+        }
+    };
+</script>
+<% } %>
+
+<script>
+    $(document).ready(function() {
+        PlatformLib.Bar.initialize(platformBarOptions);
+    });
+</script>
