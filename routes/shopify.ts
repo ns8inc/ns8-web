@@ -17,7 +17,8 @@ export function setup(app: express.Application, application: IApplication, callb
             settings: utils.config.settings(),
             application: application,
             dev: utils.config.dev(),
-            req: req
+            req: req,
+            url: 'https://' + req.query.shop + '/admin/apps'
         });
     });
 
