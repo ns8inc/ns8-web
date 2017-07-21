@@ -185,7 +185,31 @@
 <% } %>
 
 <script>
+    PlatformLib.readCookie = function(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
+
+    PlatformLib.currentRealm = '<%-req.session.user.name%>';
+
     $(document).ready(function() {
-        PlatformLib.Bar.initialize(platformBarOptions);
+
+        setInterval(function() {
+            var realm = PlatformLib.readCookie('currentRealm');
+
+            if (realm && realm != PlatformLib.currentRealm) {
+                ShopifyApp.Bar.initialize({});
+                window.location = '/shopify/realmchanged';
+            }
+        }, 500);
+
+        if (typeof platformBarOptions !== 'undefined')
+            PlatformLib.Bar.initialize(platformBarOptions);
     });
 </script>

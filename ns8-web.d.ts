@@ -161,6 +161,10 @@ declare module 'ns8-web' {
         module stationRoutes {
             export function setup(app, application, callback);
         }
+
+        module shopifyRoutes {
+            export function setup(app, application, callback);
+        }
     }
 
     module shopify {
