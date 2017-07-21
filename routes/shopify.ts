@@ -13,7 +13,7 @@ export function setup(app: express.Application, application: IApplication, callb
     //  get all segments for the current account
     app.get('/shopify/realmchanged', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
 
-        res.render('realmChanged', {
+        res.render('/shopify/realmChanged', {
             settings: utils.config.settings(),
             application: application,
             dev: utils.config.dev(),
