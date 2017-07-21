@@ -205,7 +205,7 @@
 
             if (realm && realm != PlatformLib.currentRealm) {
                 ShopifyApp.Bar.initialize({});
-                window.location = '/shopify/realmchanged';
+                window.location = '/shopify/realmchanged?shop=' + encodeURIComponent(PlatformLib.currentRealm);
             }
         }, 500);
 
