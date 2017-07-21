@@ -13,12 +13,18 @@ export function setup(app: express.Application, application: IApplication, callb
     //  get all segments for the current account
     app.get('/shopify/realmchanged', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
 
+        let url = 'https://' + req.query.shop + '/admin/apps';
+        let app: any = api.applications.items[utils.config.settings().appId];
+
+        if (app && app.data && app.data.shopifyAppId)
+            url += '/' + app.data.shopifyAppId;
+
         res.render('realmChanged', {
             settings: utils.config.settings(),
             application: application,
             dev: utils.config.dev(),
             req: req,
-            url: 'https://' + req.query.shop + '/admin/apps'
+            url: url
         });
     });
 

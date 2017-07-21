@@ -2,7 +2,6 @@ import restify = require('restify');
 import utils = require("ns8-utils");
 import express = require('express');
 import api = require('ns8-api');
-import projectRoutes = require('./projects');
 import lib = require('../lib/index');
 let http = require('http');
 let fs = require('fs');

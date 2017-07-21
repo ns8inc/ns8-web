@@ -34,7 +34,21 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
 
         //  if the user does not exist or the app is not installed, redirect to the app's authorization or billing activation url
         if (apiResponse && apiResponse.statusCode == 300 && result && result.location) {
-            res.redirect(result.location);
+
+            //  if the redirect is to a location that needs to be outside of the iframe, do a client based redirect to top
+            if (result.top) {
+
+                res.render('message', {
+                    title: 'Redirecting',
+                    message: "<script>window.top.location = '" + result.location + "'</script>",
+                    settings: utils.config.settings(),
+                    application: application,
+                    req: req,
+                    dev: utils.config.dev()
+                });
+            } else {
+                res.redirect(result.location);
+            }
 
             if (callback)
                 callback(false);
@@ -47,7 +61,6 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
                 callback(false);
         } else {
             api.setSessionAuth(req, result.data);
-
             res.cookie('currentRealm', result.data.user.name);
 
             //  refresh the project list
@@ -90,6 +103,8 @@ export function install(application, req, res, callback: (err?: api.errors.APIEr
             callback(err);
         } else {
             api.setSessionAuth(req, result.data);
+            res.cookie('currentRealm', result.data.user.name);
+
             callback();
         }
     });
