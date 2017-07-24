@@ -1,6 +1,5 @@
 import utils = require("ns8-utils");
-import Utils = require("../lib/utils");
-import web = require("ns8-web");
+import lib = require('../lib/index');
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
@@ -126,8 +125,9 @@ export function setup(app: express.Application, application: IApplication, callb
      */
 
     try {
+        let statusCheck: any = typeof application.statusCheck == 'function' ? application.statusCheck : lib.statusCheckPlaceholder;
 
-        app.get('/certificates', application.enforceSecure, api.authenticate, function(req: any, res) {
+        app.get('/certificates', application.enforceSecure, api.authenticate, statusCheck, function(req: any, res) {
 
             utils.noCache(res);
             //  get stations
@@ -152,11 +152,11 @@ export function setup(app: express.Application, application: IApplication, callb
             });
         });
 
-        app.get('/monitors', application.enforceSecure, api.authenticate, function(req: any, res) {
+        app.get('/monitors', application.enforceSecure, api.authenticate, statusCheck, function(req: any, res) {
             getMonitors(req, res, application);
         });
 
-        app.get('/monitors/types', application.enforceSecure, api.authenticate, function(req: any, res) {
+        app.get('/monitors/types', application.enforceSecure, api.authenticate, statusCheck, function(req: any, res) {
 
             res.render('monitorTypes', {
                 settings: utils.config.settings(),
