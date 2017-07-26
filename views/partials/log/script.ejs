@@ -38,7 +38,7 @@
         if (!Filter.validate('filter-builder'))
             return;
 
-        if (!$('#projects').val()) {
+        if (!report.settings.global && !$('#projects').val()) {
             Page.showMessage('Please select a project.&nbsp; <a href="/setup/projects/form">Click here</a> to create a new project.');
             return;
         }
@@ -49,7 +49,7 @@
 
             //  set options for both chart and table
             report.pageOptions = {
-                projectId: $('#projects').val(),
+                projectId: report.settings.global ? null : $('#projects').val(),
                 tableContainer: 'results-table',
                 onStateChange: pushState
             }
