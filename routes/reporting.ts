@@ -305,7 +305,7 @@ export function setup(app: express.Application, application: IApplication, callb
             (err, stdout, stderr) => {
 
                 if (err !== null) {
-                    api.log(err, "PDF download");
+                    api.logger.error(err, "PDF download", req);
                     res.end("Internal error");
                 } else {
                     res.download('phantomjs/' + file, 'report.pdf', function(err) {
@@ -313,7 +313,7 @@ export function setup(app: express.Application, application: IApplication, callb
                         try {
 
                             if (err){
-                                api.log(err, "PDF download");
+                                api.logger.error(err, "PDF download", req);
                                 res.end("Internal error");
                             } else {
                                 let stat = fs.statSync('phantomjs/' + file);
@@ -346,7 +346,7 @@ export function setup(app: express.Application, application: IApplication, callb
                     res.end();
             }
         } catch(err) {
-            api.log(err, "/download");
+            api.logger.error(err, "/download", req);
             res.end("Internal error");
         }
     });

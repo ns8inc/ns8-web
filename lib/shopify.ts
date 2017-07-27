@@ -54,7 +54,7 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
                 callback(false);
 
         } else if (err) {
-            api.log('/v1/shopify/launch', err, params, result);
+            api.logger.error('/v1/shopify/launch', req, err, params, result);
             res.status(500).send(err.message);
 
             if (callback)
