@@ -225,18 +225,18 @@ export function setup(app: express.Application, application: IApplication, callb
 
         let interval = setInterval(function() {
 
+            if (running)
+                return;
+
+            running = true;
+
             //  if this somehow gets into a loop that is too big, close it
-            if (cycles++ >= 100000) {
+            if (cycles++ >= 10000) {
                 res.write('ERROR: Too many rows to download.  The limit is ' + (cycles * params.query.limit));
                 res.end();
                 clearInterval(interval);
                 return;
             }
-
-            if (running)
-                return;
-
-            running = true;
 
             api.REST.client.post(getEndpoint() + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
