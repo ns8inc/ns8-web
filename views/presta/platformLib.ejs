@@ -217,6 +217,16 @@
         );
     };
 
+    PlatformLib.regNav = function(nav) {
+        window.parent.postMessage(
+            {
+                type: 'regNav',
+                nav: nav
+            },
+            "*"
+        );
+    };
+
     PlatformLib.setPath = function(path) {
         window.parent.postMessage(
             {
