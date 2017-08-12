@@ -1,0 +1,299 @@
+<script>
+    //  common routines for both admin and embedded modes
+    var PlatformLib = {
+
+        approveOrderPrompt: function(okCallback) {
+            swal({
+                    title: 'Approve order?',
+                    text: 'Note (optional):',
+                    type: "input",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: 'Yes, approve Order',
+                    cancelButtonText: 'No, do NOT approve order'
+                },
+                function(note) {
+                    if (note !== false)
+                        okCallback(note);
+                }
+            );
+        },
+
+        cancelOrderPrompt: function(okCallback) {
+            swal({
+                    title: 'Cancel order?',
+                    text: 'Note (optional):',
+                    type: "input",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: 'Yes, cancel Order',
+                    cancelButtonText: 'No, do NOT cancel order'
+                },
+                function(note) {
+                    if (note !== false)
+                        okCallback(note);
+                }
+            );
+        },
+
+
+        approveOrder: function(id, note, successFunction) {
+
+            ApiProxy.post('/v1/protect/presta/orders/approve', { orderName: id, note: note }, function(err, data) {
+
+                if (err) {
+                    Page.showMessage('Error: ' + err.message);
+                } else {
+                    PlatformLib.flashNotice('Order approved');
+
+                    if (typeof successFunction === 'function') {
+                        successFunction();
+                    }
+                }
+            });
+        },
+
+        cookieCheck: function() {
+
+            //  test for session cookie - if it does not exist, this is probably Safari in an IFRAME
+
+            if (location.pathname.indexOf('/cookies') === -1) {
+                document.cookie = '__na_c=1';
+
+                if (document.cookie.indexOf('__na_c') === -1)
+                    window.location = '/cookiesissue?return=' + encodeURIComponent(document.referrer);
+            }
+        },
+
+        formatCurrency: function(shop, value) {
+            if (!shop || !shop.money_format || typeof value == 'undefined' || value == null)
+                return value.toFixed(2);
+            else
+                return shop.money_format.replace('{{amount}}', value.toFixed(2));
+
+        },
+
+        stripParam: function (key, query) {
+            if (!query)
+                query = window.location.search;
+
+            var pos2, pos = query.indexOf('?' + key + '='), delim = '?';
+
+            if (pos == -1) {
+                delim = '&';
+                pos = query.indexOf('&' + key + '=');
+            }
+
+            if (pos > -1) {
+                pos2 = query.indexOf('&', pos + 1);
+
+                if (pos2 == -1) {
+                    pos2 = query.indexOf('#', pos + 1);
+                }
+
+                if (pos2 == -1) {
+                    query = query.substr(0, pos);
+                }
+                else {
+                    query = query.substr(0, pos) + delim + query.substr(pos2 + 1);
+                }
+            }
+
+            return query;
+        }
+    };
+</script>
+
+<% if (req.session.adminMode) { %>
+
+<div id="ns8Modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 id="ns8ModalTitle" class="modal-title"></h4>
+            </div>
+            <div id="ns8ModalBody" class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    PlatformLib.flashNotice = function(message) {
+        toastr.options.closeButton = true;
+        toastr.options.positionClass = "toast-top-center";
+        toastr.info(message);
+    };
+
+    PlatformLib.flashError = function(message) {
+        toastr.options.closeButton = true;
+        toastr.options.positionClass = "toast-top-center";
+        toastr.error(message);
+    };
+
+    PlatformLib.modal = function(title, body) {
+        $("#ns8ModalBody").html(body);
+
+        if (title)
+            $("#ns8ModalTitle").html(title);
+
+        $("#ns8Modal").modal();
+    };
+
+    PlatformLib.showOrder = function(id) {
+        PlatformLib.flashError('Cannot show order in admin mode');
+    };
+
+    PlatformLib.cancelOrder = function(id, note, successFunction) {
+        PlatformLib.flashError('Cannot cancel order in admin mode');
+    };
+</script>
+
+<% } else { %>
+
+<script>
+
+    /*
+        Presta-specific embedded routines
+     */
+
+    //  set up message to parent to resize iframe after it loads
+    window.onload = function() {
+        window.parent.postMessage(
+            {
+                type: 'frameLoad',
+                height: document.body.scrollHeight,
+                width: document.body.scrollWidth
+            },
+            "*"
+        );
+    };
+
+    window.onresize = function () {
+        window.parent.postMessage(
+            {
+                type: 'frameResize',
+                height: Math.ceil(document.body.scrollHeight),
+                width: Math.ceil(document.body.scrollWidth)
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.flashNotice = function(message) {
+        window.parent.postMessage(
+            {
+                type: 'flashNotice',
+                message: message
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.flashError = function(message) {
+        window.parent.postMessage(
+            {
+                type: 'flashError',
+                message: message
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.modal = function(title, body) {
+        window.parent.postMessage(
+            {
+                type: 'modal',
+                title: title,
+                body: body
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.regNav = function(nav) {
+        window.parent.postMessage(
+            {
+                type: 'regNav',
+                nav: nav
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.setPath = function(path) {
+        window.parent.postMessage(
+            {
+                type: 'setPath',
+                path: path
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.showOrder = function(id) {
+        window.parent.postMessage(
+            {
+                type: 'showOrder',
+                id: id
+            },
+            "*"
+        );
+    };
+
+    PlatformLib.cancelOrder = function(id, note, successFunction) {
+
+        ApiProxy.post('/v1/protect/presta/orders/cancel', { orderName: id, note: note }, function(err, data) {
+
+            if (err) {
+                Page.showMessage('Error: ' + err.message);
+            } else {
+                window.parent.postMessage(
+                    {
+                        type: 'cancelOrder',
+                        id: id
+                    },
+                    "*"
+                );
+                PlatformLib.flashNotice('Order canceled');
+
+                if (typeof successFunction === 'function') {
+                    successFunction();
+                }
+            }
+        });
+    };
+
+    var setLocation = window.location.pathname + window.location.search;
+    setLocation = PlatformLib.stripParam('accessToken', setLocation);
+    PlatformLib.setPath(setLocation);
+
+    $(document).ready(function() {
+        window.parent.postMessage(
+            {
+                type: 'frameResize',
+                height: Math.ceil(document.body.scrollHeight),
+                width: Math.ceil(document.body.scrollWidth)
+            },
+            "*"
+        );
+    });
+</script>
+<% } %>
+
+<script>
+    //  test for session cookie - if it does not exist, this is probably Safari in an IFRAME
+    PlatformLib.cookieCheck();
+
+    $(document).ready(function() {
+        PlatformLib.flashNotice('ddd');
+    });
+
+</script>
+
