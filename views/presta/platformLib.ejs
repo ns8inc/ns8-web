@@ -125,6 +125,12 @@
 </div>
 
 <script>
+
+    /// Give The Window A Name
+    window.name = 'app-iframe'
+
+    $(body).addClass('ns8AdminMode')
+
     PlatformLib.flashNotice = function(message) {
         toastr.options.closeButton = true;
         toastr.options.positionClass = "toast-top-center";
