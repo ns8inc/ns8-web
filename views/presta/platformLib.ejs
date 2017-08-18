@@ -153,6 +153,11 @@
     PlatformLib.cancelOrder = function(id, note, successFunction) {
         PlatformLib.flashError('Cannot cancel order in admin mode');
     };
+
+    PlatformLib.regNav = function(nav) {
+        $('adminClassNav').html(nav);
+    };
+
 </script>
 
 <% } else { %>
