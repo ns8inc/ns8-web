@@ -176,6 +176,8 @@
         Presta-specific embedded routines
      */
 
+    PlatformLib.height = 0;
+
     //  set up message to parent to resize iframe after it loads
     window.onload = function() {
         window.parent.postMessage(
@@ -188,16 +190,21 @@
         );
     };
 
-    window.onresize = function () {
-        window.parent.postMessage(
-            {
-                type: 'frameResize',
-                height: document.body.scrollHeight,
-                width: document.body.scrollWidth
-            },
-            "*"
-        );
-    };
+    //  have to monitor scrollHeight to notify parent when it changes
+    setInterval(function() {
+
+        if (document.body.scrollHeight != PlatformLib.height) {
+            PlatformLib.height = document.body.scrollHeight;
+            window.parent.postMessage(
+                {
+                    type: 'frameResize',
+                    height: Math.ceil(document.body.scrollHeight),
+                    width: Math.ceil(document.body.scrollWidth)
+                },
+                "*"
+            );
+        }
+    }, 100);
 
     PlatformLib.flashNotice = function(message) {
         window.parent.postMessage(

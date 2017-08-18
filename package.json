@@ -41,7 +41,7 @@
     "@types/restify": "^2.0.42",
     "restify": "^4.3.0",
     "serve-favicon": "*",
-    "typescript": "^2.4.1"
+    "typescript": "^2.4.2"
   },
   "license" : "MIT",
   "scripts": {
