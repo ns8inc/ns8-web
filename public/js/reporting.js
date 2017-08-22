@@ -392,7 +392,7 @@ Report.prototype.getBaseQuery = function() {
 
 Report.prototype.download = function(format) {
 
-    if (format == 'csv')
+    if (format == 'csv' || format == 'json')
         window.location = '/download?format=' + format + '&query=' + encodeURIComponent(JSON.stringify(this.getTableQuery()));
     else
         window.location = '/download?' + window.location.search.substr(1) + '&format=' + format;

@@ -209,7 +209,7 @@ export function setup(app: express.Application, application: IApplication, callb
         getReport(application, req, res);
     });
 
-    function exportCSV(req: express.Request, res: express.Response) {
+    function exportData(req: express.Request, res: express.Response) {
 
         let params = {
             accessToken: req['session'].accessToken,
@@ -228,59 +228,78 @@ export function setup(app: express.Application, application: IApplication, callb
             if (running)
                 return;
 
-            running = true;
+            try {
 
-            //  if this somehow gets into a loop that is too big, close it
-            if (cycles++ >= 10000) {
-                res.write('ERROR: Too many rows to download.  The limit is ' + (cycles * params.query.limit));
-                res.end();
-                clearInterval(interval);
-                return;
-            }
+                running = true;
 
-            api.REST.client.post(getEndpoint() + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
-
-                if (err) {
-                    clearInterval(interval);
-                    res.write('ERROR: ' + err.message);
+                //  if this somehow gets into a loop that is too big, close it
+                if (cycles++ >= 1000000) {
+                    res.write('ERROR: Too many rows to download.  The limit is ' + (cycles * params.query.limit));
                     res.end();
+                    clearInterval(interval);
                     return;
                 }
 
-                //  no headers after first chunk
-                params.query.dataOnly = true;
+                api.REST.client.post(getEndpoint() + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
-                if (result && result.code == 200) {
-
-                    if (req.query.format == 'csv') {
-
-                        if (result.data.csv)
-                            res.write(result.data.csv);
-                        else
-                            res.write('');
-
-                    } else {
-                        res.json(result.data);
+                    if (err) {
+                        clearInterval(interval);
+                        res.write('ERROR: ' + err.message);
+                        res.end();
+                        return;
                     }
 
-                    //  add filter to continue after where the last chunk ended
-                    if (result.data.nextClause) {
-                        params.query.nextClause = result.data.nextClause;
-                    } else {
+                    //  no headers after first chunk
+                    params.query.dataOnly = true;
 
-                        //  all data has been sent
+                    if (result && result.code == 200) {
+
+                        if (req.query.format == 'csv') {
+
+                            if (result.data.csv)
+                                res.write(result.data.csv);
+                            else
+                                res.write('');
+
+                        } else {
+                            let chunk = JSON.stringify(result.data.rows);
+
+                            //  on first chunk, write the array start
+                            if (cycles == 1)
+                                res.write('[');
+
+                            res.write(chunk.substr(1, chunk.length - 2));
+
+                            //  write end array if last chunk, or comma if more
+                            if (result.data.nextClause)
+                                res.write(',');
+                            else
+                                res.write(']');
+
+                        }
+
+                        //  add filter to continue after where the last chunk ended
+                        if (result.data.nextClause) {
+                            params.query.nextClause = result.data.nextClause;
+                        } else {
+
+                            //  all data has been sent
+                            res.end();
+                            clearInterval(interval);
+                        }
+
+                        running = false;
+
+                    } else {
+                        res.write('ERROR: ' + JSON.stringify(result));
                         res.end();
                         clearInterval(interval);
                     }
-
-                    running = false;
-
-                } else {
-                    res.write('ERROR: ' + JSON.stringify(result));
-                    res.end();
-                    clearInterval(interval);
-                }
-            });
+                });
+            } catch(err) {
+                clearInterval(interval);
+                api.logger.error('In download', err, req);
+            }
         }, 50);
     }
 
@@ -334,7 +353,8 @@ export function setup(app: express.Application, application: IApplication, callb
 
             switch (req.query.format) {
                 case 'csv':
-                    exportCSV(req, res);
+                case 'json':
+                    exportData(req, res);
                     break;
 
                 case 'pdf':

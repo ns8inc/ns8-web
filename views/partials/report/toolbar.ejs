@@ -105,19 +105,9 @@
         <span id="toolbar-export" title="Export this report" class="input-group-btn hideAt1024" style="width:1%">
             <button type="button" data-toggle="dropdown" class="btn btn-white dropdown-toggle"><i class="glyphicon glyphicon-share"></i></button>
             <ul class="dropdown-menu pull-right">
-                <!--
-                        <li><a href="#" onclick="return false"><i class="fa fa-envelope-o"></i>&nbsp; Email</a></li>
-                        <li><a href="#" onclick="return false"><i class="fa fa-file-pdf-o"></i>&nbsp; PDF</a></li>
-                        <li><a href="#" onclick="return false"><i class="fa fa-file-word-o"></i>&nbsp; Word</a></li>
-                        <li><a href="#" onclick="return false"><i class="fa fa-file-excel-o"></i>&nbsp; Excel</a></li>
-                        <li><a href="#" onclick="return false">OpenDocument Spreadsheet</a></li>
-                        <li><a href="#" onclick="return false">Rich Text Format</a></li>
-                        <li><a href="#" onclick="return false">Comma Seperated Values</a></li>
-                        <li><a href="#" onclick="return false">Tab Delimited</a></li>
-                        <li><a href="#" onclick="return false">JSON</a></li>
-                -->
                 <li class="toolbar-pdf"><a href="#" onclick="report.download('pdf'); return false">Adobe PDF</a></li>
                 <li><a href="#" onclick="report.download('csv'); return false">Comma Separated Values</a></li>
+                <li><a href="#" onclick="report.download('json'); return false">JSON</a></li>
             </ul>
         </span>
 
@@ -146,6 +136,7 @@
                 </li>
                 <li class="toolbar-pdf"><a href="#" onclick="report.download('pdf'); return false"><i class="glyphicon glyphicon-share"></i>&nbsp; Export Adobe PDF</a></li>
                 <li><a href="#" onclick="report.download('csv'); return false"><i class="glyphicon glyphicon-share"></i>&nbsp; Export CSV</a></li>
+                <li><a href="#" onclick="report.download('json'); return false"><i class="glyphicon glyphicon-share"></i>&nbsp; Export JSON</a></li>
             </ul>
         </span>
 
