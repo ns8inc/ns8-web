@@ -217,7 +217,7 @@ export function setup(app: express.Application, application: IApplication, callb
         };
 
         params.query.format = req.query.format;
-        params.query.limit = 1000;
+        params.query.limit = 200;
 
         res.attachment('data.' + req.query.format);
 
