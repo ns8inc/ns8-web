@@ -217,7 +217,7 @@ export function setup(app: express.Application, application: IApplication, callb
         };
 
         params.query.format = req.query.format;
-        params.query.limit = 200;
+        params.query.limit = 200;       //  keep this at 200 - higher leads to server slowness
 
         res.attachment('data.' + req.query.format);
 
