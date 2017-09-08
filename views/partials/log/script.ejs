@@ -69,6 +69,11 @@
                 //  if being exported, notify service that rendering is done
                 if (typeof window.callPhantom === 'function')
                     window.callPhantom({ status: 'complete' });
+
+                //  custom report views can attach a function for processing after a report is rendered
+                if (typeof window.afterRenderHook === 'function')
+                    window.afterRenderHook(report, err);
+
             });
         }
     }
