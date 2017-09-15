@@ -1662,9 +1662,14 @@ Report.explainQuery = function(json, attributes) {
 
         for (var i = 0; i < attributes.length; i++) {
             var attrib = attributes[i];
+            text = Utils.replaceAll(text, '"' + attrib.name + '":"', attrib.title + ' = "');
             text = Utils.replaceAll(text, '"' + attrib.name + '":', attrib.title + ' ');
         }
     }
+
+    //  for variables
+    text = Utils.replaceAll(text, '{{ ', '<%% ');
+    text = Utils.replaceAll(text, ' }}', ' %%>');
 
     text = Utils.replaceAll(text, '"\\$nin":', 'not in ');
     text = Utils.replaceAll(text, '"\\$in":', 'in ');
@@ -1682,6 +1687,10 @@ Report.explainQuery = function(json, attributes) {
     text = Utils.replaceAll(text, ':', ': ');
     text = Utils.replaceAll(text, ',', ', ');
     text = Utils.replaceAll(text, '"', '');
+
+    text = Utils.replaceAll(text, '<%% ', '{{ ');
+    text = Utils.replaceAll(text, ' %%>', ' }}');
+
     return '<pre>' + text + '</pre>';
 };
 
