@@ -126,7 +126,7 @@
         if ($("#filter-builder").queryBuilder('validate'))
             report.state.filter = $("#filter-builder").queryBuilder('getMongo');
         else
-            delete report.state.filter;
+            report.state.filter = {};
     }
 
     function restoreState(state) {

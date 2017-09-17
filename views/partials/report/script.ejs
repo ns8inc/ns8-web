@@ -182,7 +182,7 @@
         if ($("#elements").val())
             report.state.group = $("#elements").val();
         else
-            delete report.state.group;
+            report.state.group = null;
 
         if ($("#segments").val())
             report.state.segments = $("#segments").val();
@@ -192,7 +192,7 @@
         if ($("#filter-builder").queryBuilder('validate'))
             report.state.filter = $("#filter-builder").queryBuilder('getMongo');
         else
-            delete report.state.filter;
+            report.state.filter = {};
 
         if (customCount >0) {
             report.state.customSegments = customSegments;
