@@ -182,7 +182,7 @@
         if ($("#elements").val())
             report.state.group = $("#elements").val();
         else
-            report.state.group = null;
+            delete report.state.group;
 
         if ($("#segments").val())
             report.state.segments = $("#segments").val();
