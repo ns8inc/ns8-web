@@ -2409,6 +2409,9 @@ var Toolbar = {
             case 'Monthly':
             case 'month':
                 return 'YYYY-MM';
+            case 'Weekly':
+            case 'week':
+                return 'YYYY-MM-DD';
             case 'Yearly':
             case 'year':
                 return 'YYYY';
