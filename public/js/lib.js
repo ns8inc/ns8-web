@@ -124,15 +124,18 @@ var Page = {
 
         //  build html for menu
         var menuHtml = function() {
-            var html = '<ul class="nav" id="side-menu">' +
-                '<li class="nav-header">' +
-                '  <div class="dropdown profile-element">' +
-                '    <a href="/"><img alt="image" src="' + Page.menuLogo + '" style="width:150px;margin-top:-10px" /></a>' +
-                '  </div>' +
-                '  <div class="logo-element">' +
-                '    <a href="/"><img alt="image" src="' + Page.menuLogoSmall + '" style="width:40px;margin-top:-10px" /></a>' +
-                '  </div>' +
-                '</li>';
+            var html = '<ul class="nav" id="side-menu">';
+
+            if (Page.menuLogo) {
+                html += '<li class="nav-header">' +
+                    '  <div class="dropdown profile-element">' +
+                    '    <a href="/"><img alt="image" src="' + Page.menuLogo + '" style="width:150px;margin-top:-10px" /></a>' +
+                    '  </div>' +
+                    '  <div class="logo-element">' +
+                    '    <a href="/"><img alt="image" src="' + Page.menuLogoSmall + '" style="width:40px;margin-top:-10px" /></a>' +
+                    '  </div>' +
+                    '</li>';
+            }
 
             for (var m = 0; m < Page.menuItems.length; m++) {
                 html += menuItemHtml(Page.menuItems[m])
