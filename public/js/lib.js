@@ -127,6 +127,7 @@ var Page = {
             var html = '<ul class="nav" id="side-menu">';
 
             if (Page.menuLogo) {
+
                 html += '<li class="nav-header">' +
                     '  <div class="dropdown profile-element">' +
                     '    <a href="/"><img alt="image" src="' + Page.menuLogo + '" style="width:150px;margin-top:-10px" /></a>' +
