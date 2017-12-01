@@ -33,7 +33,12 @@ export function getReport(application, req, res) {
 
     let definition, qsOptions, metricOptions, elementOptions, filterOptions, attribOptions, id;
 
-    qsOptions = req.query.options ? JSON.parse(req.query.options) : {};
+    try {
+        qsOptions = req.query.options ? JSON.parse(req.query.options) : {};
+    } catch(err) {
+        qsOptions = {};
+    }
+
     id = qsOptions.id || req.query.id;        //  there should not be two ids, but if there is, use the one in options
 
     //  get report definition
