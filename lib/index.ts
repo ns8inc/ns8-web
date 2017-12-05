@@ -10,6 +10,33 @@ export function renderError(req, res, message) {
     res.render('errorPage', { req: req, message: message ? message : 'Unknown error'});
 }
 
+/**
+ * Based on the user-agent, just return a 200.  This is to block certain bots.
+ * @param req
+ * @param res
+ * @param {Function} next
+ * @returns {any}
+ */
+export function blocker(req, res, next: Function) {
+    if (req && req.headers && req.headers['user-agent']) {
+        let blockedUAs = [
+            'www.opensiteexplorer.org',
+            'http://ahrefs.com',
+            'ELB-HealthChecker'
+        ];
+        let ua = req.headers['user-agent'];
+
+        for (let i = 0; i < blockedUAs.length; i++) {
+            if (ua.indexOf(blockedUAs[i]) > -1) {
+                res.send(200);
+                return;
+            }
+        }
+    }
+    next();
+
+}
+
 //  An application can have a custom middleware.  If it doesn't, it uses this placeholder.
 export function statusCheckPlaceholder(req, res, next: Function) {
     return next();
