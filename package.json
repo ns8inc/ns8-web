@@ -1,7 +1,7 @@
 {
   "name": "ns8-web",
   "description": "Web application framework",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "author": {
     "name": "NS8.com"
   },
@@ -14,29 +14,29 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ns8inc/ns8-web.git"
+    "url": "git://github.com/ns8inc/ns8-web.git"
   },
   "engines": {
     "node": ">=4.2.0"
   },
   "dependencies": {
-    "@types/node": "^8.5.7",
     "@types/async": "^2.0.46",
+    "@types/connect-flash": "^0.0.34",
+    "@types/ejs": "^2.5.0",
+    "@types/express-session": "^1.15.6",
+    "@types/node": "^8.5.7",
+    "@types/restify": "^4.3.2",
     "async": "^2.6.0",
     "body-parser": "*",
-    "cookie-parser": "*",
-    "@types/ejs": "^2.5.0",
-    "ejs": "^2.5.7",
-    "@types/connect-flash": "^0.0.34",
     "connect-flash": "^0.1.1",
+    "cookie-parser": "*",
+    "ejs": "^2.5.7",
     "express": "^4.16.2",
-    "@types/express-session": "^1.15.6",
     "express-session": "^1.15.6",
     "json-bigint": "^0.2.3",
     "ns8-api": "ns8inc/ns8-api#1.x",
-    "ns8-data-services": "^1.5.0",
+    "ns8-data-services": "^1.5.1",
     "ns8-utils": "ns8inc/ns8-utils#1.x",
-    "@types/restify": "^4.3.2",
     "restify": "^4.3.1",
     "serve-favicon": "*",
     "typescript": "2.6.2"
