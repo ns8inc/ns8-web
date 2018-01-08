@@ -35,7 +35,7 @@
     "express-session": "^1.15.6",
     "json-bigint": "^0.2.3",
     "ns8-api": "ns8inc/ns8-api#1.x",
-    "ns8-data-services": "^1.5.1",
+    "ns8-data-services": "^1.5.2",
     "ns8-utils": "ns8inc/ns8-utils#1.x",
     "restify": "^4.3.1",
     "serve-favicon": "*",
