@@ -16,17 +16,20 @@
                         <td><%- packageInfo.version %></td>
                     </tr>
 
+                    <tr>
+                        <td>NODE_ENV</td>
+                        <td><%- proc.env.NODE_ENV %></td>
+                    </tr>
+
+                    <tr>
+                        <td>NODE_PATH</td>
+                        <td><%- proc.env.NODE_PATH %></td>
+                    </tr>
+
                     <% for (let key in versions) { %>
                     <tr>
                         <td><%- key %></td>
                         <td><%- versions[key] %></td>
-                    </tr>
-                    <% } %>
-
-                    <% for (let key in proc.env) { %>
-                    <tr>
-                        <td>Environment variable: <%- key %></td>
-                        <td><%- proc.env[key] %></td>
                     </tr>
                     <% } %>
                 </table>
