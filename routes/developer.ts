@@ -12,6 +12,19 @@ let gator = require('ns8-data-services');
 
 export function setup(app: express.Application, application: IApplication, callback) {
 
+    app.get('/configcheck', (req: express.Request, res: express.Response) => {
+        let packageInfo = require('../package.json');
+
+        res.render('configCheck', {
+            settings: utils.config.settings(),
+            application: application,
+            req: req,
+            packageInfo: packageInfo,
+            versions: process.versions,
+            proc: process
+        });
+    });
+
     app.get('/developer/overview', application.enforceSecure, function (req: express.Request, res: express.Response) {
         utils.noCache(res);
 

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include ../node_modules/ns8-web/views/partials/master/header %>
+</head>
+<body class="white-bg">
+
+<div id="wrapper">
+
+    <% include partials/topPanel %>
+
+    <div class="wrapper embedded-content">
+        <div class="row">
+
+            <% include ../node_modules/ns8-web/views/partials/master/message %>
+
+            <div class="col-lg-12" style="height:1200px">
+                <h1>Config Check</h1>
+                <table class="table">
+                    <tr>
+                        <td>Package version</td>
+                        <td><%- packageInfo.version %></td>
+                    </tr>
+
+                    <% for (let key in versions) { %>
+                    <tr>
+                        <td><%- key %></td>
+                        <td><%- versions[key] %></td>
+                    </tr>
+                    <% } %>
+
+                    <% for (let key in proc.env) { %>
+                    <tr>
+                        <td>Environment variable: <%- key %></td>
+                        <td><%- proc.env[key] %></td>
+                    </tr>
+                    <% } %>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% include ../node_modules/ns8-web/views/partials/master/footerScripts %>
+
+</body>
+</html>
