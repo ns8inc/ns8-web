@@ -7,26 +7,10 @@ import {IApplication} from "ns8-web";
 let gator = require('ns8-data-services');
 
 /*
- Set up routes - this script handles functions required for managing segments
+ Set up routes - this script handles functions required for managing developer routes
  */
 
 export function setup(app: express.Application, application: IApplication, callback) {
-
-    app.get('/configcheck', (req: express.Request, res: express.Response) => {
-
-        let packageInfoPath = process.cwd() + '/package.json'
-
-        let packageInfo = require(packageInfoPath);
-
-        res.render('configCheck', {
-            settings: utils.config.settings(),
-            application: application,
-            req: req,
-            packageInfo: packageInfo,
-            versions: process.versions,
-            proc: process
-        });
-    });
 
     app.get('/developer/overview', application.enforceSecure, function (req: express.Request, res: express.Response) {
         utils.noCache(res);
