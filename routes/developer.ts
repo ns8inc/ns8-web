@@ -13,7 +13,10 @@ let gator = require('ns8-data-services');
 export function setup(app: express.Application, application: IApplication, callback) {
 
     app.get('/configcheck', (req: express.Request, res: express.Response) => {
-        let packageInfo = require('../package.json');
+
+        let packageInfoPath = process.cwd() + '//packge.json'
+
+        let packageInfo = require(packageInfoPath);
 
         res.render('configCheck', {
             settings: utils.config.settings(),
