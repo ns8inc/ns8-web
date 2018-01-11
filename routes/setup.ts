@@ -20,6 +20,7 @@ import _contactRoutes = require('./contacts');
 import _monitorRoutes = require('./monitors');
 import _stationRoutes = require('./stations');
 import _shopifyRoutes = require('./shopify');
+import _systemRoutes = require('./system');
 
 export let apiRoutes = require('./api');
 export let projectRoutes = require('./projects');
@@ -37,6 +38,7 @@ export let contactRoutes = require('./contacts');
 export let monitorRoutes = require('./monitors');
 export let stationRoutes = require('./stations');
 export let shopifyRoutes = require('./shopify');
+export let systemRoutes = require('./system');
 
 export function setup(app: express.Application, application: IApplication, callback) {
 
