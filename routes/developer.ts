@@ -14,7 +14,7 @@ export function setup(app: express.Application, application: IApplication, callb
 
     app.get('/configcheck', (req: express.Request, res: express.Response) => {
 
-        let packageInfoPath = process.cwd() + '//packge.json'
+        let packageInfoPath = process.cwd() + '/package.json'
 
         let packageInfo = require(packageInfoPath);
 
