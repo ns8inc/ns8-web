@@ -191,7 +191,12 @@ export function setup(app: express.Application, application: IApplication, callb
             delete params.query.view;
         }
 
-        api.REST.client.post(getEndpoint() + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+        let options = {
+            path: getEndpoint() + 'query',
+            agent: false
+        };
+
+        api.REST.client.post(options, params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
             api.REST.sendConditional(res, err, result ? result.data : null);
         });
     });
