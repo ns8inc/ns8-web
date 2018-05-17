@@ -4,7 +4,7 @@
 
     ShopifyApp.init({
         apiKey: '<%- application.current.shopifyApiKey %>',
-        shopOrigin: 'https://<%- req.session ? req.session.user.name : '' %>'
+        shopOrigin: 'https://<%- req.session && req.session.user ? req.session.user.name : '' %>'
     });
 
     var PlatformLib = ShopifyApp;
@@ -196,7 +196,7 @@
         return null;
     }
 
-    PlatformLib.currentRealm = '<%-req.session.user.name%>';
+    PlatformLib.currentRealm = '<%-req && req.session && req.session.user ? req.session.user.name : '' %>';
 
     $(document).ready(function() {
 
