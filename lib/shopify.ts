@@ -159,6 +159,8 @@ export function renderCookiesIssue(application, req, res) {
         let shop = url.parse(req.header('referrer')).host;
         let returnUrl = 'https://' + shop + '/admin/apps/';
 
+        api.logger.info('returnUrl', shop, req.headers, returnUrl, req.header('referrer'));
+
         res.render('./api/login', {
             returnUrl: returnUrl,
             settings: utils.config.settings(),

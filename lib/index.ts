@@ -28,7 +28,7 @@ export function blocker(req, res, next: Function) {
 
         for (let i = 0; i < blockedUAs.length; i++) {
             if (ua.indexOf(blockedUAs[i]) > -1) {
-                res.send(200);
+                res.sendStatus(200);
                 return;
             }
         }
