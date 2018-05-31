@@ -196,9 +196,14 @@ export function setup(app: express.Application, application: IApplication, callb
             agent: false
         };
 
-        api.REST.client.post(options, params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
-            api.REST.sendConditional(res, err, result ? result.data : null);
-        });
+        try {
+            api.REST.client.post(options, params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                api.REST.sendConditional(res, err, result ? result.data : null);
+            });
+        } catch(err) {
+            api.logger.error('Restify client error', err, options, params.query);
+            api.REST.sendError(res, err);
+        }
     });
 
     //  typeahead support
