@@ -71,7 +71,9 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
                 else
                     req['session'].projects = result.data.projects;
 
-                res.redirect(application.branding.postLoginUrl);
+                let url = utils.appendQueryString(application.branding.postLoginUrl, 'shopifyqs', JSON.stringify(req.query));
+
+                res.redirect(url);
 
                 if (callback)
                     callback(true);
@@ -141,28 +143,42 @@ export function uninstall(application, req, res, callback: (err?: api.errors.API
  * @param res
  */
 export function renderCookiesIssue(application, req, res) {
+    let shop, returnUrl;
 
-    //  look for the shop in the referrer - if it's not there, this page was accessed incorrectly
-    if (!req || !req.headers || !req.header('referrer')) {
+    //  look for the shop in the query params appended by the launch call - if it's not there, this page was accessed incorrectly
+    if (req && req.query && req.query.shopifyqs) {
+        shop = JSON.parse(req.query.shopifyqs).shop;
+    } else if (req && req.headers && req.header('referrer')) {
+        shop = url.parse(req.header('referrer')).host;
+    }
 
-        res.render('message', {
-            title: 'Error',
-            message: 'Please re-launch the app',
-            settings: utils.config.settings(),
-            application: application,
-            req: req,
-            dev: utils.config.dev()
-        });
+    if (shop) {
+        returnUrl = 'https://' + shop + '/admin/apps/';
+
+        if (req.header('user-agent') && req.header('user-agent').indexOf('Shopify') > -1) {
+
+            res.render('./api/cookiesUnsupported', {
+                returnUrl: returnUrl,
+                settings: utils.config.settings(),
+                application: application,
+                req: req,
+                dev: utils.config.dev()
+            });
+        } else {
+
+            res.render('./api/login', {
+                returnUrl: returnUrl,
+                settings: utils.config.settings(),
+                application: application,
+                req: req,
+                dev: utils.config.dev()
+            });
+        }
     } else {
 
-        //  get the shop from the referrer
-        let shop = url.parse(req.header('referrer')).host;
-        let returnUrl = 'https://' + shop + '/admin/apps/';
-
-        api.logger.info('returnUrl', shop, req.headers, returnUrl, req.header('referrer'));
-
-        res.render('./api/login', {
-            returnUrl: returnUrl,
+        res.render('message', {
+            title: 'Launch Issue',
+            message: 'We cannot determine which shop this app was launched from.  Please re-login to Shopify and re-launch the app',
             settings: utils.config.settings(),
             application: application,
             req: req,
