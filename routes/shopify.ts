@@ -11,7 +11,7 @@ import {IApplication} from "ns8-web";
 export function setup(app: express.Application, application: IApplication, callback) {
 
     //  get all segments for the current account
-    app.get('/shopify/realmchanged', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
+    app.get('/shopify/realmchanged', application.enforceSecure, api.authenticate, (req: express.Request, res: express.Response) => {
 
         let url = 'https://' + req.query.shop + '/admin/apps';
         let app: any = api.applications.items[utils.config.settings().appId];
@@ -26,6 +26,14 @@ export function setup(app: express.Application, application: IApplication, callb
             req: req,
             url: url
         });
+    });
+
+    app.get('/shopify/cust/redact', (req: express.Request, res: express.Response) => {
+        res.sendStatus(200);
+    });
+
+    app.get('/shopify/shop/delete', (req: express.Request, res: express.Response) => {
+        res.sendStatus(200);
     });
 
     callback();
