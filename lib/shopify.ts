@@ -24,6 +24,7 @@ export function apiHost(): string {
 export function launch(application, req, res, callback?: (launched: boolean) => void) {
 
     let params = {
+        env: utils.config.env(),
         appId: application.current.id,
         query: req.query,
         redirect_uri: utils.config.dev() ? 'https://' + req.headers['host'] + '/shopify/install' : 'https://' + utils.config.settings().domain + '/shopify/install'
