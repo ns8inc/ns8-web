@@ -28,11 +28,11 @@ export function setup(app: express.Application, application: IApplication, callb
         });
     });
 
-    app.get('/shopify/cust/redact', (req: express.Request, res: express.Response) => {
+    app.post('/shopify/cust/redact', (req: express.Request, res: express.Response) => {
         res.sendStatus(200);
     });
 
-    app.get('/shopify/shop/delete', (req: express.Request, res: express.Response) => {
+    app.post('/shopify/shop/delete', (req: express.Request, res: express.Response) => {
         res.sendStatus(200);
     });
 
