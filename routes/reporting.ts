@@ -182,7 +182,8 @@ export function setup(app: express.Application, application: IApplication, callb
 
         let endpoint, params = {
             accessToken: req['session'].accessToken,
-            query: req.body
+            query: req.body,
+            clientIP: utils.ip.remoteAddress(req)
         };
 
         //  support change from 'view' to 'entity'
