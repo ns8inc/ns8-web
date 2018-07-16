@@ -183,7 +183,8 @@ export function setup(app: express.Application, application: IApplication, callb
         let endpoint, params = {
             accessToken: req['session'].accessToken,
             query: req.body,
-            clientIP: utils.ip.remoteAddress(req)
+            clientIP: utils.ip.remoteAddress(req),
+            clientUA: req.header('user-agent')
         };
 
         //  support change from 'view' to 'entity'
