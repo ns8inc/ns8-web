@@ -1,3 +1,5 @@
+import utils = require("ns8-utils");
+
 import _routes = require('../routes/setup');
 import _shopify = require('../lib/shopify');
 import _dictionaries = require('./dictionaries');
@@ -8,6 +10,20 @@ export let dictionaries = _dictionaries;
 
 export function renderError(req, res, message) {
     res.render('errorPage', { req: req, message: message ? message : 'Unknown error'});
+}
+
+/**
+ * Look for a partner id on the query string and drop a cookie to track partner signups.
+ */
+export function setPartnerCookie(req, res) {
+
+    //  drop partner id cookie if passed in - this will be used to assign the partner from the install
+    let partnerId =  req.query.partnerId || req.query.partnerid;
+
+    if (partnerId) {
+        let domain = utils.config.dev() ? '.ngrok.io' : '.ns8.com';
+        res.cookie('partnerId', partnerId, { domain: domain, maxAge: 1000 * 3600 * 24 * 365 });  // one year expiration
+    }
 }
 
 /**
