@@ -21,8 +21,7 @@ export function setPartnerCookie(req, res) {
     let partnerId =  req.query.partnerId || req.query.partnerid;
 
     if (partnerId) {
-        let domain = utils.config.dev() ? '.ngrok.io' : '.ns8.com';
-        res.cookie('partnerId', partnerId, { domain: domain, maxAge: 1000 * 3600 * 24 * 365 });  // one year expiration
+        res.cookie('partnerId', partnerId, { maxAge: 1000 * 3600 * 24 * 365 });  // one year expiration
     }
 }
 
