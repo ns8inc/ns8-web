@@ -64,6 +64,7 @@ declare module 'ns8-web' {
         pods: Array<string>;
     }
 
+    export function setPartnerCookie(req, res);
     export function blocker(req, res, next: Function);
     export function renderError(req, res, message);
 
