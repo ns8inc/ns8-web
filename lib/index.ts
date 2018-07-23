@@ -37,7 +37,9 @@ export function blocker(req, res, next: Function) {
         let blockedUAs = [
             'www.opensiteexplorer.org',
             'http://ahrefs.com',
-            'ELB-HealthChecker'
+            'ELB-HealthChecker',
+            'SemrushBot',
+            'CFNetwork'
         ];
         let ua = req.headers['user-agent'];
 
