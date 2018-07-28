@@ -39,7 +39,8 @@ export function blocker(req, res, next: Function) {
             'http://ahrefs.com',
             'ELB-HealthChecker',
             'SemrushBot',
-            'CFNetwork'
+            'CFNetwork',
+            'MJ12bot'
         ];
         let ua = req.headers['user-agent'];
 
