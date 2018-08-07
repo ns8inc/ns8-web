@@ -40,7 +40,8 @@ export function blocker(req, res, next: Function) {
             'ELB-HealthChecker',
             'SemrushBot',
             'CFNetwork',
-            'MJ12bot'
+            'MJ12bot',
+            'UptimeRobot'
         ];
         let ua = req.headers['user-agent'];
 
