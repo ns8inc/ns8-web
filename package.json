@@ -37,7 +37,7 @@
     "ns8-api": "ns8inc/ns8-api#1.x",
     "ns8-data-services": "^1.5.2",
     "ns8-utils": "ns8inc/ns8-utils#1.x",
-    "restify": "^4.3.1",
+    "restify": "^4.3.4",
     "serve-favicon": "*",
     "typescript": "2.6.2"
   },
