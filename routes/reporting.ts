@@ -12,8 +12,20 @@ import {IApplication} from "ns8-web";
  Set up routes - this script handles functions required reporting
  */
 
-function getEndpoint(): string {
-    return api.applications.items[utils.config.settings().appId].reporting.apiEndpoint;
+function getEndpoint(query?): string {
+    let endpoint = '';
+
+    if (query && query.appId) {
+        endpoint = api.applications.items[+query.appId].reporting.apiEndpoint;
+    } else {
+        endpoint = api.applications.items[utils.config.settings().appId].reporting.apiEndpoint;
+    }
+
+    //  standardize endpoints with / at end
+    if (endpoint.substr(endpoint.length - 1, 1) != '/') {
+        endpoint += '/';
+    }
+    return endpoint;
 }
 
 export function getReport(application, req, res) {
@@ -194,7 +206,7 @@ export function setup(app: express.Application, application: IApplication, callb
         }
 
         let options = {
-            path: getEndpoint() + 'query',
+            path: getEndpoint(params.query) + 'query',
             agent: false
         };
 
@@ -257,7 +269,7 @@ export function setup(app: express.Application, application: IApplication, callb
                     return;
                 }
 
-                api.REST.client.post(getEndpoint() + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+                api.REST.client.post(getEndpoint(params.query) + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
                     if (err) {
                         clearInterval(interval);
