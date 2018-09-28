@@ -23,7 +23,7 @@
 
 <!-- Intercom -->
 <%
-if (typeof req !== 'undefined' && !req.noItercom && typeof application.intercomSettings == 'function' && (!req.session || !req.session.adminMode)) {
+if (typeof req !== 'undefined' && !req.noIntercom && typeof application.intercomSettings == 'function' && (!req.session || !req.session.adminMode)) {
     let intercomSettings = application.intercomSettings(req) || {};
 %>
 <script>
