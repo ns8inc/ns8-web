@@ -38,6 +38,7 @@ export function blocker(req, res, next: Function) {
             'www.opensiteexplorer.org',
             'http://ahrefs.com',
             'ELB-HealthChecker',
+            'ELB-HealthChecker/2.0',
             'SemrushBot',
             'CFNetwork',
             'MJ12bot',
