@@ -48,12 +48,15 @@
                             for (var m = 0; m < payments.length; m++) {
                                 var payment = payments[m];
 
-                                html += '<tr>';
-                                html += '<td>' + new Date(payment.created * 1000) + '</td>';
-                                html += '<td>' + payment.source.last4 + '</td>';
-                                html += '<td>' + payment.source.exp_month + ' / ' + payment.source.exp_year + '</td>';
-                                html += '<td>' + payment.amount + ' (USD)</td>';
-                                html += '</tr>';
+                                if (payment.captured) {
+
+                                    html += '<tr>';
+                                    html += '<td>' + new Date(payment.created * 1000) + '</td>';
+                                    html += '<td>' + payment.source.last4 + '</td>';
+                                    html += '<td>' + payment.source.exp_month + ' / ' + payment.source.exp_year + '</td>';
+                                    html += '<td>' + payment.amount + ' (USD)</td>';
+                                    html += '</tr>';
+                                }
                             }
                         }
                         html += '</tbody>';
