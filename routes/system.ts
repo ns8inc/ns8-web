@@ -1,12 +1,12 @@
 import utils = require("ns8-utils");
 import express = require('express');
-import web = require('ns8-web');
+import {IApplication} from "../lib";
 
 /*
  Set up system routes
  */
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     app.get('/configcheck', (req: express.Request, res: express.Response) => {
 

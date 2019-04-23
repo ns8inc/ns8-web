@@ -3,9 +3,9 @@
         "module": "commonjs",
         "target": "ES6",
         "sourceMap": true,
-        "removeComments": true
+        "removeComments": true,
+        "declaration": true
     },
-    "types": "./ns8-web.d.ts",
     "exclude": [
         "node_modules"
     ]

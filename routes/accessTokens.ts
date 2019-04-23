@@ -2,13 +2,13 @@ import utils = require("ns8-utils");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
-import web = require('ns8-web');
+import {IApplication} from "../lib";
 
 /*
  Set up routes - this script handles functions required for managing access tokens
  */
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     app.get('/accesstokens', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
         utils.noCache(res);

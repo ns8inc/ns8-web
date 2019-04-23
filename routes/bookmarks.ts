@@ -2,13 +2,13 @@ import utils = require("ns8-utils");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
-import web = require('ns8-web');
+import {IApplication} from "../lib";
 
 /*
  Set up routes - this script handles functions required for managing bookmarks
  */
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     //  show all bookmarks for the current account
     app.get('/setup/bookmarks', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {

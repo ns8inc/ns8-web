@@ -1,5 +1,5 @@
 import express = require('express');
-import web = require('ns8-web');
+import {IApplication} from "../lib";
 
 export let apiRoutes = require('./api');
 export let projectRoutes = require('./projects');
@@ -13,8 +13,13 @@ export let attributeRoutes = require('./attributes');
 export let paymentRoutes = require('./payments');
 export let emailRoutes = require('./email');
 export let accessTokenRoutes = require('./accessTokens');
+export let contactRoutes = require('./contacts');
+export let monitorRoutes = require('./monitors');
+export let stationRoutes = require('./stations');
+export let shopifyRoutes = require('./shopify');
+export let systemRoutes = require('./system');
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     /*
      Set up routes - this script handles module admin functions

@@ -1,13 +1,13 @@
 import utils = require("ns8-utils");
 import express = require('express');
 import api = require('ns8-api');
-import web = require('ns8-web');
+import {IApplication} from "../lib";
 
 /*
  Set up routes - this script handles functions required for managing segments
  */
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     //  get all segments for the current account
     app.get('/shopify/realmchanged', application.enforceSecure, api.authenticate, (req: express.Request, res: express.Response) => {

@@ -2,8 +2,8 @@ import utils = require("ns8-utils");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
-import web = require('ns8-web');
 import lib = require('../lib/index');
+import {IApplication} from "../lib";
 
 /*
  Set up routes - this script handles functions required for managing dashboards
@@ -96,7 +96,7 @@ export function getDashboard(application, req, res) {
     });
 }
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     let statusCheck: any = typeof application.statusCheck == 'function' ? application.statusCheck : lib.statusCheckPlaceholder;
 

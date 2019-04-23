@@ -1,10 +1,10 @@
 import utils = require("ns8-utils");
-import web = require("ns8-web");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
+import {IApplication} from "../lib/index";
 
-export function getStations(req, res, application: web.IApplication) {
+export function getStations(req, res, application: IApplication) {
 
     api.REST.client.get('/v1/monitoring/stations', function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
@@ -21,7 +21,7 @@ export function getStations(req, res, application: web.IApplication) {
     });
 }
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     /*
      Stations

@@ -1,8 +1,8 @@
 import utils = require("ns8-utils");
-import web = require("ns8-web");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
+import {IApplication} from "../lib";
 
 export function getContactParams(req) {
     let items, params: any = req.body;
@@ -39,7 +39,7 @@ export function getContactParams(req) {
     return params;
 }
 
-export function setup(app: express.Application, application: web.IApplication, callback) {
+export function setup(app: express.Application, application: IApplication, callback) {
 
     /*
      Contacts

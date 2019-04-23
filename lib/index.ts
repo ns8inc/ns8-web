@@ -1,4 +1,4 @@
-import utils = require("ns8-utils");
+import api = require("ns8-api");
 
 import _routes = require('../routes/setup');
 import _shopify = require('../lib/shopify');
@@ -7,6 +7,50 @@ import _dictionaries = require('./dictionaries');
 export let routes = _routes;
 export let shopify = _shopify;
 export let dictionaries = _dictionaries;
+
+export interface IBranding {
+    productName: string;
+    companyName: string;
+    scriptName: string;
+    logoDarkBackground: string;
+    logoLightBackground: string;
+    logoMenu: string;
+    logoMenuSmall: string;
+    supportEmail: string;
+    salesEmail: string;
+    salesPhone: string;
+    address1: string;
+    address2: string;
+    primaryColor: string;
+    signupUrl: string;
+    postSignupUrl: string;
+    loginUrl: string;
+    postLoginUrl: string;
+}
+
+export interface Report {
+    description?: string;
+    options: Object;
+}
+
+export interface Reports {
+    Types: Object;
+    definitions: Array<Report>;
+}
+
+export interface IApplication {
+    settings: api.ISettings;
+    api: any;
+    current: any;
+    branding: IBranding;
+    projectTypes?: Object;
+    projectDesc?(type): string;
+    defaultDashboard(type): Object;
+    menuItems?(user, account, project): Array<MenuItem>;
+    enforceSecure(req, res, next: Function);
+    statusCheck(req, res, next: Function);
+    reports: Reports;
+}
 
 export function renderError(req, res, message) {
     res.render('errorPage', { req: req, message: message ? message : 'Unknown error'});
