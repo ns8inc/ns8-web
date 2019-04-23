@@ -2,7 +2,7 @@ import utils = require("ns8-utils");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
-import {IApplication} from "ns8-web";
+import web = require('ns8-web');
 import lib = require('../lib/index');
 
 /*
@@ -96,7 +96,7 @@ export function getDashboard(application, req, res) {
     });
 }
 
-export function setup(app: express.Application, application: IApplication, callback) {
+export function setup(app: express.Application, application: web.IApplication, callback) {
 
     let statusCheck: any = typeof application.statusCheck == 'function' ? application.statusCheck : lib.statusCheckPlaceholder;
 

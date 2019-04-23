@@ -2,13 +2,13 @@ import utils = require("ns8-utils");
 import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
-import {IApplication} from "ns8-web";
+import web = require('ns8-web');
 
 /*
  Set up routes - this script handles functions required for managing campaigns
  */
 
-export function setup(app: express.Application, application: IApplication, callback) {
+export function setup(app: express.Application, application: web.IApplication, callback) {
 
     /*
         Campaign referrers

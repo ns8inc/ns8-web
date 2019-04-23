@@ -3,10 +3,9 @@ import utils = require("ns8-utils");
 import express = require('express');
 import api = require('ns8-api');
 import lib = require('../lib/index');
-let http = require('http');
 let fs = require('fs');
 let os = require('os');
-import {IApplication} from "ns8-web";
+import web = require('ns8-web');
 
 /*
  Set up routes - this script handles functions required reporting
@@ -180,7 +179,7 @@ export function getReport(application, req, res) {
     });
 }
 
-export function setup(app: express.Application, application: IApplication, callback) {
+export function setup(app: express.Application, application: web.IApplication, callback) {
 
     let statusCheck: any = typeof application.statusCheck == 'function' ? application.statusCheck : lib.statusCheckPlaceholder;
 

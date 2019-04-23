@@ -4,7 +4,7 @@ import express = require('express');
 import restify = require('restify');
 import api = require('ns8-api');
 import dictionaries = require('../lib/dictionaries');
-import {IApplication} from "ns8-web";
+import web = require('ns8-web');
 
 export let stationList;
 
@@ -68,7 +68,7 @@ export function getMonitorParams(req) {
     return params;
 }
 
-export function getMonitors(req, res, application: IApplication) {
+export function getMonitors(req, res, application: web.IApplication) {
     utils.noCache(res);
 
     //  get contacts for form
@@ -118,7 +118,7 @@ export function getMonitors(req, res, application: IApplication) {
     });
 }
 
-export function setup(app: express.Application, application: IApplication, callback) {
+export function setup(app: express.Application, application: web.IApplication, callback) {
 
     /*
      Monitors
