@@ -44,5 +44,5 @@
   "license": "MIT",
   "scripts": {
     "install": "tsc"
-  },
+  }
 }

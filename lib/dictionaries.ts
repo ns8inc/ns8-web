@@ -1,4 +1,4 @@
-//    Static dictionaries used to hold common data.
+//  Static dictionaries used to hold common data.
 
 //  This creates two arrays, so that items are indexable by both key and code.
 export class Dictionary<T extends Item> {
