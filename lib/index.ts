@@ -127,3 +127,25 @@ export class MenuItem {
 
     }
 }
+
+//  Dashboard pod
+export class Pod {
+    display: string;
+    title: string;
+    state: Object;
+}
+
+export class Dashboard {
+    createdDate: any;
+    pods: Array<string>;
+}
+
+export interface Report {
+    description?: string;
+    options: Object;
+}
+
+export interface Reports {
+    Types: Object;
+    definitions: Array<Report>;
+}
