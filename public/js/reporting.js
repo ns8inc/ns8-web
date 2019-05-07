@@ -393,12 +393,12 @@ Report.prototype.getBaseQuery = function() {
 Report.prototype.download = function(format) {
 
     if (format == 'csv' || format == 'json')
-        window.location = '/download?format=' + format + '&query=' + encodeURIComponent(JSON.stringify(this.getTableQuery()));
+        window.location = '/download?format=' + format + '&query=' + encodeURIComponent(JSON.stringify(this.getTableQuery(true)));
     else
         window.location = '/download?' + window.location.search.substr(1) + '&format=' + format;
 };
 
-Report.prototype.getTableQuery = function() {
+Report.prototype.getTableQuery = function(isDownload) {
     var state = this.state;
 
     var query = this.getBaseQuery();
@@ -407,7 +407,7 @@ Report.prototype.getTableQuery = function() {
         query.limit = 100;
 
         //  make sure coordinates are returned for map on log reports
-        if (this.pageOptions.mapContainer || this.state.map) {
+        if (!isDownload && (this.pageOptions.mapContainer || this.state.map)) {
 
             if (query.attributes.indexOf('longitude') == -1)
                 query.attributes += ',longitude';
