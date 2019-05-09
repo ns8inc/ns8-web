@@ -404,7 +404,7 @@ Report.prototype.getTableQuery = function(isDownload) {
     var query = this.getBaseQuery();
 
     if (state.isLog) {
-        query.limit = 100;
+        query.limit = state.limit || 100;
 
         //  make sure coordinates are returned for map on log reports
         if (!isDownload && (this.pageOptions.mapContainer || this.state.map)) {
