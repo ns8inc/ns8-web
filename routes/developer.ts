@@ -164,7 +164,7 @@ export function setup(app: express.Application, application: IApplication, callb
         }
 
         if (!req.params.query) {
-            req.params.query = {
+            req.params.query = JSON.stringify({
                 entity: 'sessions',
                 projectId: req['session'].currentProjectId,
                 timezone: req['session'].user.timezoneId,
@@ -172,7 +172,7 @@ export function setup(app: express.Application, application: IApplication, callb
                 group: 'browser',
                 sort: { 'sessions': -1 },
                 attributes: "sessions"
-            }
+            });
         }
 
         res.render('queryTester', {
