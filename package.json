@@ -1,7 +1,7 @@
 {
   "name": "ns8-web",
   "description": "Web application framework",
-  "version": "1.1.47",
+  "version": "1.1.50",
   "author": {
     "name": "NS8.com"
   },
@@ -20,26 +20,26 @@
     "node": ">=4.2.0"
   },
   "dependencies": {
-    "@types/async": "^2.4.1",
-    "@types/connect-flash": "^0.0.34",
+    "@types/async": "^2.4.2",
+    "@types/connect-flash": "^0.0.35",
     "@types/ejs": "^2.6.3",
-    "@types/express-session": "^1.15.12",
-    "@types/node": "^10.14.5",
+    "@types/express-session": "^1.15.14",
+    "@types/node": "^10.14.19",
     "@types/restify": "^4.3.6",
-    "async": "^2.6.2",
+    "async": "^2.6.3",
     "body-parser": "*",
     "connect-flash": "^0.1.1",
     "cookie-parser": "*",
-    "ejs": "^2.6.1",
-    "express": "^4.16.4",
-    "express-session": "^1.16.1",
+    "ejs": "^2.7.1",
+    "express": "^4.17.1",
+    "express-session": "^1.16.2",
     "json-bigint": "^0.3.0",
     "ns8-api": "ns8inc/ns8-api#1.x",
     "ns8-data-services": "^1.5.2",
     "ns8-utils": "ns8inc/ns8-utils#1.x",
     "restify": "^4.3.4",
     "serve-favicon": "*",
-    "typescript": "^3.4.4"
+    "typescript": "^3.6.3"
   },
   "license": "MIT",
   "scripts": {
