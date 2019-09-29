@@ -262,9 +262,9 @@ export function setup(app: express.Application, application: IApplication, callb
 
                 //  if this somehow gets into a loop that is too big, close it
                 if (cycles++ >= 1000000) {
+                    clearInterval(interval);
                     res.write('ERROR: Too many rows to download.  The limit is ' + (cycles * params.query.limit));
                     res.end();
-                    clearInterval(interval);
                     return;
                 }
 
@@ -310,25 +310,25 @@ export function setup(app: express.Application, application: IApplication, callb
                         if (result.data.nextClause) {
                             params.query.nextClause = result.data.nextClause;
                         } else {
+                            clearInterval(interval);
 
                             //  all data has been sent
                             res.end();
-                            clearInterval(interval);
                         }
 
                         running = false;
 
                     } else {
+                        clearInterval(interval);
                         res.write('ERROR: ' + JSON.stringify(result));
                         res.end();
-                        clearInterval(interval);
                     }
                 });
             } catch(err) {
                 clearInterval(interval);
                 api.logger.error('In download', err, req);
             }
-        }, 50);
+        }, 100);
     }
 
     function exportPDF(req: express.Request, res: express.Response) {
