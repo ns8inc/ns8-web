@@ -270,63 +270,68 @@ export function setup(app: express.Application, application: IApplication, callb
 
                 api.REST.client.post(getEndpoint(params.query) + 'query', params, function(err, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
 
-                    if (err) {
-                        clearInterval(interval);
-                        res.write('ERROR: ' + err.message);
-                        res.end();
-                        return;
-                    }
-
-                    //  no headers after first chunk
-                    params.query.dataOnly = true;
-
-                    if (result && result.code == 200) {
-
-                        if (req.query.format == 'csv') {
-
-                            if (result.data.csv)
-                                res.write(result.data.csv);
-                            else
-                                res.write('');
-
-                        } else {
-                            let chunk = JSON.stringify(result.data.rows);
-
-                            //  on first chunk, write the array start
-                            if (cycles == 1)
-                                res.write('[');
-
-                            res.write(chunk.substr(1, chunk.length - 2));
-
-                            //  write end array if last chunk, or comma if more
-                            if (result.data.nextClause)
-                                res.write(',');
-                            else
-                                res.write(']');
-
+                    try {
+                        if (err) {
+                            clearInterval(interval);
+                            res.write('ERROR: ' + err.message);
+                            res.end();
+                            return;
                         }
 
-                        //  add filter to continue after where the last chunk ended
-                        if (result.data.nextClause) {
-                            params.query.nextClause = result.data.nextClause;
+                        //  no headers after first chunk
+                        params.query.dataOnly = true;
+
+                        if (result && result.code == 200) {
+
+                            if (req.query.format == 'csv') {
+
+                                if (result.data.csv)
+                                    res.write(result.data.csv);
+                                else
+                                    res.write('');
+
+                            } else {
+                                let chunk = JSON.stringify(result.data.rows);
+
+                                //  on first chunk, write the array start
+                                if (cycles == 1)
+                                    res.write('[');
+
+                                res.write(chunk.substr(1, chunk.length - 2));
+
+                                //  write end array if last chunk, or comma if more
+                                if (result.data.nextClause)
+                                    res.write(',');
+                                else
+                                    res.write(']');
+
+                            }
+
+                            //  add filter to continue after where the last chunk ended
+                            if (result.data.nextClause) {
+                                params.query.nextClause = result.data.nextClause;
+                            } else {
+                                clearInterval(interval);
+
+                                //  all data has been sent
+                                res.end();
+                            }
+
+                            running = false;
+
                         } else {
                             clearInterval(interval);
-
-                            //  all data has been sent
+                            res.write('ERROR: ' + JSON.stringify(result));
                             res.end();
                         }
-
-                        running = false;
-
-                    } else {
+                    } catch(err) {
                         clearInterval(interval);
-                        res.write('ERROR: ' + JSON.stringify(result));
-                        res.end();
+                        api.logger.error('In download internal error trap', err, req);
                     }
                 });
             } catch(err) {
                 clearInterval(interval);
-                api.logger.error('In download', err, req);
+                api.logger.error('In download main error trap', err, req);
             }
         }, 100);
     }
