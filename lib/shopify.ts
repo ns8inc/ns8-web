@@ -62,7 +62,7 @@ export function launch(application, req, res, callback?: (launched: boolean) => 
                 callback(false);
         } else {
             api.setSessionAuth(req, result.data);
-            res.cookie('currentRealm', result.data.user.name);
+            res.cookie('currentRealm', result.data.user.name, { secure: "auto", sameSite: "None" });
 
             //  refresh the project list
             api.REST.client.get('/v1/projects?accessToken=' + result.data.accessToken, function(err, apiRequest, apiResponse, result: any) {
