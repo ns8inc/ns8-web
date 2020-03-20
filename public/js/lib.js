@@ -371,7 +371,9 @@ $(document).ready(function() {
     $('[data-toggle="tooltip"]').tooltip();
     
     //  check for partnerid
-    if (localStorage && Utils.getParam('partnerid')) 
-        localStorage['partnerId'] = Utils.getParam('partnerid');
-    
+    try {
+        if (localStorage && Utils.getParam('partnerid'))
+            localStorage['partnerId'] = Utils.getParam('partnerid');
+    } catch(err) {
+    }
 });
