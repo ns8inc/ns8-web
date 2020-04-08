@@ -160,7 +160,7 @@ export function setup(app: express.Application, application: IApplication, callb
         utils.noCache(res);
 
         if (req.query.query) {
-            req.params.query = JSON.parse(req.query.query);
+            req.params.query = JSON.parse(req.query.query as string);
         }
 
         if (!req.params.query) {

@@ -242,7 +242,7 @@ export function setup(app: express.Application, application: IApplication, callb
         app.get('/test/website', application.enforceSecure, function (req: express.Request, res: express.Response) {
             utils.noCache(res);
 
-            api.REST.client.get('/v1/monitoring/test/website?url=' + encodeURIComponent(req.query['url']) + '&stationId=' + req.query['stationId'], function(err: Error, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
+            api.REST.client.get('/v1/monitoring/test/website?url=' + encodeURIComponent(req.query['url'] as string) + '&stationId=' + req.query['stationId'], function(err: Error, apiRequest: restify.Request, apiResponse: restify.Response, result: any) {
                 api.REST.sendConditional(res, err, result);
             });
         });

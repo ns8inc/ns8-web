@@ -55,10 +55,10 @@ export function setup(app: express.Application, application: IApplication, callb
 
             if (req.query.name) {
 
-                if (!project.data.attributes[req.query.type][req.query.name])
-                    project.data.attributes[req.query.type][req.query.name] = {};
+                if (!project.data.attributes[req.query.type as string][req.query.name as string])
+                    project.data.attributes[req.query.type as string][req.query.name as string] = {};
 
-                dataObj = project.data.attributes[req.query.type][req.query.name];
+                dataObj = project.data.attributes[req.query.type as string][req.query.name as string];
                 dataObj.name = req.query.name;
             }
 

@@ -223,7 +223,7 @@ export function setup(app: express.Application, application: IApplication, callb
 
     app.delete('/setup/projectshares', application.enforceSecure, api.authenticate, function (req: express.Request, res: express.Response) {
 
-        api.REST.client.del('/v1/projectshares?userName=' + encodeURIComponent(req.query['userName']) + '&projectId=' + req.query['projectId'] + '&accessToken=' + req['session'].accessToken, function(err: Error, apiRequest: restify.Request, apiResponse: restify.Response) {
+        api.REST.client.del('/v1/projectshares?userName=' + encodeURIComponent(req.query['userName'] as string) + '&projectId=' + req.query['projectId'] + '&accessToken=' + req['session'].accessToken, function(err: Error, apiRequest: restify.Request, apiResponse: restify.Response) {
             api.REST.sendConditional(res, err);
         });
     });

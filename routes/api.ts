@@ -92,7 +92,7 @@ export function setup(app: express.Application, application: IApplication, callb
 
         //  check for a remote login
         if (req.query.accessToken) {
-            res.redirect(utils.appendQueryString(application.branding.postLoginUrl, 'accessToken', req.query.accessToken));
+            res.redirect(utils.appendQueryString(application.branding.postLoginUrl, 'accessToken', req.query.accessToken as string));
             return;
         }
 
