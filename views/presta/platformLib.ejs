@@ -57,6 +57,9 @@
 
             //  test for session cookie - if it does not exist, this is probably Safari in an IFRAME
 
+            // plv - removing cookie check - will cause auth on every page view, but fixes the 3rd party cookie issue
+            return;
+
             if (location.pathname.indexOf('/cookies') === -1) {
                 document.cookie = '__na_c=1';
 
